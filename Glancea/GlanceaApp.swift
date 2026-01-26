@@ -10,8 +10,11 @@ import SwiftUI
 @main
 struct GlanceaApp: App {
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        MenuBarExtra("Glancea", systemImage: "checkmark.circle.fill") {
+            MonitorsListView()
         }
+//        WindowGroup {
+//            ContentView()
+//        }
     }
 }
