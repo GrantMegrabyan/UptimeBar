@@ -15,57 +15,90 @@ struct MonitorRowView: View {
         Button(action: {
             print("Clicked: \(monitor.name)")
         }) {
-            HStack(spacing: 8) {
-                // Status indicator
-                Circle()
-                    .fill(statusColor)
-                    .frame(width: 8, height: 8)
+            HStack(spacing: 10) {
+                // Status indicator (larger, with icon)
+                StatusIconView(status: monitor.status)
+                    .frame(width: 12, height: 12)
 
                 // Monitor name
                 Text(monitor.name)
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(isHovered ? .white : .primary)
+                    .lineLimit(1)
 
-                Spacer()
+                Spacer(minLength: 8)
 
-                // Response time
-                Text(responseTimeText)
-                    .foregroundStyle(isHovered ? .white.opacity(0.8) : .secondary)
+                // Response time with progress bar
+                ResponseTimeView(
+                    responseTimeMs: monitor.responseTimeMs,
+                    isHovered: isHovered
+                )
             }
-            .font(.system(size: 13))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: 6)
                     .fill(isHovered ? Color.accentColor : .clear)
             )
         }
         .buttonStyle(.plain)
         .onHover { hovering in
-            isHovered = hovering
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isHovered = hovering
+            }
         }
     }
+}
 
-    private var statusColor: Color {
-        switch monitor.status {
-        case .up:
-            return .green
-        case .down:
-            return .red
-        case .pending:
-            return .orange
-        case .maintenance:
-            return .blue
-        // Looks like the "metrics" api returns 'status=nil'
-        // when it is unclear if the service is 'up' or 'down'.
-        // We can treat this as 'pending'
-        case nil:
-            return .orange
+struct StatusIconView: View {
+    let status: MonitorStatus?
+
+    var body: some View {
+        ZStack {
+            switch status {
+            case .up:
+                Circle()
+                    .fill(Color.green)
+            case .down:
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(Color.red)
+                    .font(.system(size: 12))
+            case .pending, nil:
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(Color.orange)
+                    .font(.system(size: 12))
+            case .maintenance:
+                Image(systemName: "gearshape.fill")
+                    .foregroundStyle(Color.blue)
+                    .font(.system(size: 12))
+            }
+        }
+    }
+}
+
+struct ResponseTimeView: View {
+    let responseTimeMs: Double?
+    let isHovered: Bool
+
+    var body: some View {
+        HStack(spacing: 6) {
+            // Progress bar
+            if let responseTime = responseTimeMs, responseTime >= 0 {
+                ProgressBar(value: progressValue, color: performanceColor)
+                    .frame(width: 50, height: 6)
+            }
+
+            // Response time text
+            Text(responseTimeText)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(isHovered ? .white.opacity(0.9) : performanceColor)
+                .frame(minWidth: 45, alignment: .trailing)
         }
     }
 
     private var responseTimeText: String {
-        guard let responseTime = monitor.responseTimeMs else {
+        guard let responseTime = responseTimeMs else {
             return "—"
         }
 
@@ -75,6 +108,59 @@ struct MonitorRowView: View {
             return "\(Int(responseTime)) ms"
         } else {
             return String(format: "%.1f s", responseTime / 1000)
+        }
+    }
+
+    private var performanceColor: Color {
+        guard let responseTime = responseTimeMs, responseTime >= 0 else {
+            return .secondary
+        }
+
+        if responseTime < 100 {
+            return Color(red: 0.06, green: 0.73, blue: 0.51) // Green
+        } else if responseTime < 300 {
+            return Color(red: 0.52, green: 0.80, blue: 0.09) // Light green
+        } else if responseTime < 1000 {
+            return Color(red: 0.96, green: 0.62, blue: 0.04) // Orange
+        } else {
+            return Color(red: 0.94, green: 0.27, blue: 0.27) // Red
+        }
+    }
+
+    private var progressValue: Double {
+        guard let responseTime = responseTimeMs, responseTime >= 0 else {
+            return 0
+        }
+
+        // Scale: 0-100ms = 0-0.2, 100-300ms = 0.2-0.5, 300-1000ms = 0.5-0.8, >1000ms = 0.8-1.0
+        if responseTime < 100 {
+            return 0.2 * (responseTime / 100)
+        } else if responseTime < 300 {
+            return 0.2 + 0.3 * ((responseTime - 100) / 200)
+        } else if responseTime < 1000 {
+            return 0.5 + 0.3 * ((responseTime - 300) / 700)
+        } else {
+            return min(0.8 + 0.2 * ((responseTime - 1000) / 1000), 1.0)
+        }
+    }
+}
+
+struct ProgressBar: View {
+    let value: Double
+    let color: Color
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                // Background
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color.secondary.opacity(0.2))
+
+                // Filled portion
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(color)
+                    .frame(width: geometry.size.width * value)
+            }
         }
     }
 }
@@ -100,9 +186,16 @@ struct MonitorRowView: View {
             name: "Radarr",
             url: "http://test.com",
             status: .pending,
-            responseTimeMs: nil
+            responseTimeMs: 523
+        ))
+        MonitorRowView(monitor: Monitor(
+            id: 4,
+            name: "Pi-hole Primary",
+            url: "http://test.com",
+            status: .up,
+            responseTimeMs: 89
         ))
     }
     .padding(6)
-    .frame(width: 240)
+    .frame(width: 320)
 }
