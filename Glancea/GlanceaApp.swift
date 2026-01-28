@@ -13,11 +13,29 @@ struct GlanceaApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MonitorsListView(monitors: $monitorManager.monitors)
+            MonitorsListView(monitorManager: monitorManager)
         } label: {
-            Label("Glancea", systemImage: monitorManager.aggregateStatus.icon)
-                .foregroundStyle(monitorManager.aggregateStatus.color)
+            HStack(spacing: 4) {
+                Image(systemName: monitorManager.aggregateStatus.icon)
+                    .foregroundStyle(monitorManager.aggregateStatus.color)
+
+                if let badgeText = badgeText {
+                    Text(badgeText)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(monitorManager.aggregateStatus.color)
+                }
+            }
         }
         .menuBarExtraStyle(.window)
+    }
+
+    private var badgeText: String? {
+        let totalCount = monitorManager.monitors.count
+        guard totalCount > 0 else { return nil }
+
+        let issueCount = monitorManager.monitors.filter { $0.status != .up }.count
+        guard issueCount > 0 else { return nil }
+
+        return "\(issueCount)/\(totalCount)"
     }
 }

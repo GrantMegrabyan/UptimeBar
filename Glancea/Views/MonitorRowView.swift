@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppKit
 
 struct MonitorRowView: View {
     let monitor: Monitor
@@ -13,7 +14,9 @@ struct MonitorRowView: View {
 
     var body: some View {
         Button(action: {
-            print("Clicked: \(monitor.name)")
+            if let url = URL(string: monitor.url) {
+                NSWorkspace.shared.open(url)
+            }
         }) {
             HStack(spacing: 10) {
                 // Status indicator (larger, with icon)

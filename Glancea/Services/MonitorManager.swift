@@ -11,6 +11,8 @@ import SwiftUI
 @Observable
 class MonitorManager {
     var monitors: [Monitor] = []
+    var lastUpdated: Date = .now
+    var isRefreshing: Bool = false
 
     private let provider = UptimeKumaMetricsProvider()
     private var updateTask: Task<Void, Never>?
@@ -33,8 +35,15 @@ class MonitorManager {
         }
     }
 
+    func refresh() async {
+        await updateMonitors()
+    }
+
     private func updateMonitors() async {
+        isRefreshing = true
         monitors = await provider.getMonitors()
+        lastUpdated = .now
+        isRefreshing = false
     }
 
     var aggregateStatus: AggregateStatus {
