@@ -12,18 +12,23 @@ struct MonitorsListView: View {
     @State var lastUpdated: Date = .now
 
     var body: some View {
-        VStack {
-            Text(timeAgo(lastUpdated))
-                .font(.caption)
-                .lineLimit(1)
-                .alignmentGuide(.trailing, computeValue: { _ in 1 })
+        VStack(alignment: .leading, spacing: 2) {
+            // Header
+            Text("Monitors")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 14)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
 
-            Divider()
-
+            // Monitors list
             ForEach(monitors, id: \.id) { monitor in
                 MonitorRowView(monitor: monitor)
             }
         }
+        .padding(.horizontal, 6)
+        .padding(.bottom, 8)
+        .frame(width: 240)
         .task {
             while !Task.isCancelled {
                 await updateMonitors()

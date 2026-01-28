@@ -13,6 +13,7 @@ struct GlanceaApp: App {
         MenuBarExtra("Glancea", systemImage: "checkmark.circle.fill") {
             MonitorsListView()
         }
+        .menuBarExtraStyle(.window)
 //        WindowGroup {
 //            ContentView()
 //        }
