@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct MonitorsListView: View {
-    @State var monitors = [] as [Monitor]
-    @State var lastUpdated: Date = .now
+    @Binding var monitors: [Monitor]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -29,22 +28,5 @@ struct MonitorsListView: View {
         .padding(.horizontal, 6)
         .padding(.bottom, 8)
         .frame(width: 240)
-        .task {
-            while !Task.isCancelled {
-                await updateMonitors()
-                lastUpdated = .now
-                try? await Task.sleep(for: .seconds(5))
-            }
-        }
-    }
-
-    func updateMonitors() async {
-        self.monitors = await UptimeKumaMetricsProvider().getMonitors()
-    }
-
-    func timeAgo(_ date: Date) -> String {
-        let f = RelativeDateTimeFormatter()
-        f.unitsStyle = .abbreviated  // "1 min ago" (often), "2 hr ago", etc.
-        return f.localizedString(for: date, relativeTo: .now)
     }
 }

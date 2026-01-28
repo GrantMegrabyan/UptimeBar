@@ -9,13 +9,15 @@ import SwiftUI
 
 @main
 struct GlanceaApp: App {
+    @State private var monitorManager = MonitorManager()
+
     var body: some Scene {
-        MenuBarExtra("Glancea", systemImage: "checkmark.circle.fill") {
-            MonitorsListView()
+        MenuBarExtra {
+            MonitorsListView(monitors: $monitorManager.monitors)
+        } label: {
+            Label("Glancea", systemImage: monitorManager.aggregateStatus.icon)
+                .foregroundStyle(monitorManager.aggregateStatus.color)
         }
         .menuBarExtraStyle(.window)
-//        WindowGroup {
-//            ContentView()
-//        }
     }
 }
