@@ -99,13 +99,22 @@ enum UptimeKumaMetricsParser {
     /// Parses: metric_name{key="value",...} 123
     /// Also supports: metric_name 123 (no labels), though we won't use it here.
     private static func parseSampleLine(_ line: String) -> Sample? {
-        // Split into "left" and "value" by first whitespace after metric/labels.
-        // Prometheus allows timestamps too; we ignore anything after the value.
-        let parts = line.split(whereSeparator: { $0 == " " || $0 == "\t" })
-        guard parts.count >= 2 else { return nil }
+        // Find the closing brace (if any) to determine where labels end
+        let closeBraceIdx = line.lastIndex(of: "}")
 
-        let left = String(parts[0])
-        let value = String(parts[1])
+        // Find the first whitespace after the labels section (or after metric name if no labels)
+        let searchStartIdx = closeBraceIdx ?? line.startIndex
+        guard let valueStartIdx = line[searchStartIdx...].firstIndex(where: { $0 == " " || $0 == "\t" }) else {
+            return nil
+        }
+
+        let left = String(line[..<valueStartIdx]).trimmingCharacters(in: .whitespaces)
+        let valueAndRest = line[valueStartIdx...].trimmingCharacters(in: .whitespaces)
+
+        // Extract just the value (ignore optional timestamp)
+        let valueParts = valueAndRest.split(whereSeparator: { $0 == " " || $0 == "\t" })
+        guard !valueParts.isEmpty else { return nil }
+        let value = String(valueParts[0])
 
         if let braceIdx = left.firstIndex(of: "{") {
             let metric = String(left[..<braceIdx])
