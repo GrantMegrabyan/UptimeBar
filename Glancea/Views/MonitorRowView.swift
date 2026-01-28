@@ -56,8 +56,11 @@ struct MonitorRowView: View {
             return .orange
         case .maintenance:
             return .blue
+        // Looks like the "metrics" api returns 'status=nil'
+        // when it is unclear if the service is 'up' or 'down'.
+        // We can treat this as 'pending'
         case nil:
-            return .gray
+            return .orange
         }
     }
 
