@@ -14,11 +14,13 @@ class MonitorManager {
     var lastUpdated: Date = .now
     var isRefreshing: Bool = false
 
-    private let provider = UptimeKumaMetricsProvider()
+    private var provider: UptimeKumaMetricsProvider
     private var updateTask: Task<Void, Never>?
-    private let updateFrequencySec = 120
+    private let settings: AppSettings
 
-    init() {
+    init(settings: AppSettings) {
+        self.settings = settings
+        self.provider = UptimeKumaMetricsProvider(settings: settings)
         startUpdating()
     }
 
@@ -26,11 +28,17 @@ class MonitorManager {
         updateTask?.cancel()
     }
 
+    func restartUpdating() {
+        updateTask?.cancel()
+        provider = UptimeKumaMetricsProvider(settings: settings)
+        startUpdating()
+    }
+
     private func startUpdating() {
         updateTask = Task {
             while !Task.isCancelled {
                 await updateMonitors()
-                try? await Task.sleep(for: .seconds(updateFrequencySec))
+                try? await Task.sleep(for: .seconds(settings.refreshInterval))
             }
         }
     }

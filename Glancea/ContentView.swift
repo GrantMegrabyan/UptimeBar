@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State var monitors = [] as [Monitor]
+    let settings: AppSettings
 
     let columns = [
         GridItem(.adaptive(minimum: 200, maximum: 250), spacing: 16)
@@ -31,9 +32,9 @@ struct ContentView: View {
             }
         }
     }
-    
+
     func updateMonitors() async {
-        self.monitors = await UptimeKumaMetricsProvider().getMonitors()
+        self.monitors = await UptimeKumaMetricsProvider(settings: settings).getMonitors()
     }
 }
 
@@ -107,10 +108,13 @@ struct StatusIcon: View {
 }
 
 #Preview {
-    ContentView(monitors: [
-        Monitor(id: 1, name: "Test Server", url: "http://test.com", status: .up, responseTimeMs: 13),
-        Monitor(id: 2, name: "API Gateway", url: "http://api.com", status: .down, responseTimeMs: 0),
-        Monitor(id: 3, name: "Database", url: "http://db.com", status: .pending, responseTimeMs: 245),
-        Monitor(id: 4, name: "Web Service", url: "http://web.com", status: .maintenance, responseTimeMs: nil)
-    ])
+    ContentView(
+        monitors: [
+            Monitor(id: 1, name: "Test Server", url: "http://test.com", status: .up, responseTimeMs: 13),
+            Monitor(id: 2, name: "API Gateway", url: "http://api.com", status: .down, responseTimeMs: 0),
+            Monitor(id: 3, name: "Database", url: "http://db.com", status: .pending, responseTimeMs: 245),
+            Monitor(id: 4, name: "Web Service", url: "http://web.com", status: .maintenance, responseTimeMs: nil)
+        ],
+        settings: AppSettings()
+    )
 }

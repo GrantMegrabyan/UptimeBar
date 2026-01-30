@@ -9,11 +9,18 @@ import SwiftUI
 
 @main
 struct GlanceaApp: App {
-    @State private var monitorManager = MonitorManager()
+    @State private var settings = AppSettings()
+    @State private var monitorManager: MonitorManager
+
+    init() {
+        let settings = AppSettings()
+        _settings = State(initialValue: settings)
+        _monitorManager = State(initialValue: MonitorManager(settings: settings))
+    }
 
     var body: some Scene {
         MenuBarExtra {
-            MonitorsListView(monitorManager: monitorManager)
+            MonitorsListView(monitorManager: monitorManager, settings: settings)
         } label: {
             HStack(spacing: 4) {
                 Image(systemName: monitorManager.aggregateStatus.icon)

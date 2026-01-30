@@ -11,20 +11,23 @@ import OSLog
 class UptimeKumaMetricsProvider {
     let logger = Logger(subsystem: "Glancea", category: "UptimeKumaMetricsProvider")
 
-    private let username = "grant"
-    private let password = "GoUWqHv-aJd-4iihvZerzJTP"
+    private let settings: AppSettings
+
+    init(settings: AppSettings) {
+        self.settings = settings
+    }
 
     func getMonitors() async -> [Monitor] {
-        guard let url = URL(string: "http://192.168.1.181:3001/metrics") else {
-            logger.error("Invalid URL")
+        guard let url = URL(string: settings.uptimeKumaURL) else {
+            logger.error("Invalid URL: \(self.settings.uptimeKumaURL)")
             return []
         }
 
         var request = URLRequest(url: url)
 
         // Add HTTP Basic Authentication
-        if !username.isEmpty && !password.isEmpty {
-            let credentials = "\(username):\(password)"
+        if !settings.uptimeKumaUsername.isEmpty && !settings.uptimeKumaPassword.isEmpty {
+            let credentials = "\(settings.uptimeKumaUsername):\(settings.uptimeKumaPassword)"
             if let credentialsData = credentials.data(using: .utf8) {
                 let base64Credentials = credentialsData.base64EncodedString()
                 request.setValue("Basic \(base64Credentials)", forHTTPHeaderField: "Authorization")

@@ -51,6 +51,35 @@ struct MonitorRowView: View {
                 isHovered = hovering
             }
         }
+        .help(tooltipText)
+    }
+
+    private var tooltipText: String {
+        var text = "URL: \(monitor.url)\n"
+        text += "Status: \(statusText)\n"
+        if let responseTime = monitor.responseTimeMs, responseTime >= 0 {
+            if responseTime < 1000 {
+                text += "Response Time: \(Int(responseTime)) ms"
+            } else {
+                text += String(format: "Response Time: %.1f s", responseTime / 1000)
+            }
+        }
+        return text
+    }
+
+    private var statusText: String {
+        switch monitor.status {
+        case .up:
+            return "Up"
+        case .down:
+            return "Down"
+        case .pending:
+            return "Pending"
+        case .maintenance:
+            return "Maintenance"
+        case nil:
+            return "Unknown"
+        }
     }
 }
 
