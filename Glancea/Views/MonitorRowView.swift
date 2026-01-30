@@ -40,6 +40,7 @@ struct MonitorRowView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
             .background(
                 RoundedRectangle(cornerRadius: 6)
                     .fill(isHovered ? Color.accentColor : .clear)
