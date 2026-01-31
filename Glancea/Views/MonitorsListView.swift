@@ -71,46 +71,9 @@ struct MonitorsListView: View {
                 .padding(.horizontal, 8)
                 .padding(.top, 4)
 
-            HStack {
-                // Settings button
-                Button(action: {
-                    openSettingsWindow()
-                }) {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .help("Settings")
-
-                Spacer()
-
-                // Refresh button
-                Button(action: {
-                    Task {
-                        await monitorManager.refresh()
-                    }
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 11))
-                            .rotationEffect(.degrees(monitorManager.isRefreshing ? 360 : 0))
-                            .animation(
-                                monitorManager.isRefreshing
-                                    ? .linear(duration: 1).repeatForever(autoreverses: false)
-                                    : .default,
-                                value: monitorManager.isRefreshing
-                            )
-                        Text("Refresh")
-                            .font(.system(size: 11, weight: .medium))
-                    }
-                    .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .disabled(monitorManager.isRefreshing)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
+            FooterView(monitorManager: monitorManager)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
         }
         .padding(.horizontal, 6)
         .frame(width: 320, height: 500)
