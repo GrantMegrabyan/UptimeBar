@@ -42,13 +42,12 @@ struct HeaderView: View {
             Spacer()
             
             // Settings button
-            Button(action: {
+            Button("Settings", systemImage: "gearshape") {
                 openSettingsWindow()
-            }) {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
             }
+            .labelStyle(.iconOnly)
+            .font(.system(size: 11))
+            .foregroundStyle(.secondary)
             .buttonStyle(.plain)
             .help("Settings")
         }
