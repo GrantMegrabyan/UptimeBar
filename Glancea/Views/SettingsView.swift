@@ -112,6 +112,7 @@ struct SettingsView: View {
                 Spacer()
 
                 Button("Done") {
+                    settings.save()
                     onDismiss()
                 }
                 .buttonStyle(.borderedProminent)
@@ -121,6 +122,9 @@ struct SettingsView: View {
         }
         .frame(width: 320, height: 500)
         .background(Color(nsColor: .windowBackgroundColor))
+        .onDisappear {
+            settings.save()
+        }
     }
 }
 
