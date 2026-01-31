@@ -62,7 +62,8 @@ struct MonitorRowView: View {
             if responseTime < 1000 {
                 text += "Response Time: \(Int(responseTime)) ms"
             } else {
-                text += String(format: "Response Time: %.1f s", responseTime / 1000)
+                let seconds = responseTime / 1000
+                text += "Response Time: \(seconds.formatted(.number.precision(.fractionLength(1)))) s"
             }
         }
         return text
@@ -140,7 +141,8 @@ struct ResponseTimeView: View {
         } else if responseTime < 1000 {
             return "\(Int(responseTime)) ms"
         } else {
-            return String(format: "%.1f s", responseTime / 1000)
+            let seconds = responseTime / 1000
+            return "\(seconds.formatted(.number.precision(.fractionLength(1)))) s"
         }
     }
 
