@@ -185,18 +185,14 @@ struct ProgressBar: View {
     let color: Color
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .leading) {
-                // Background
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(Color.secondary.opacity(0.2))
-
-                // Filled portion
+        RoundedRectangle(cornerRadius: 3)
+            .fill(Color.secondary.opacity(0.2))
+            .overlay(
                 RoundedRectangle(cornerRadius: 3)
                     .fill(color)
-                    .frame(width: geometry.size.width * value)
-            }
-        }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .scaleEffect(x: value, y: 1, anchor: .leading)
+            )
     }
 }
 
