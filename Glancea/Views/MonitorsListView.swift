@@ -6,7 +6,6 @@
 //
 
 import AppKit
-import Combine
 import SwiftUI
 
 struct MonitorsListView: View {
@@ -15,11 +14,59 @@ struct MonitorsListView: View {
     @State private var isIssuesSectionExpanded = true
     @State private var isHealthySectionExpanded = true
     @State private var selectedMonitorId: Int?
-
-    // Track the settings window to prevent multiple instances
-    @State private var settingsWindow: NSWindow?
+    @State private var isSettingsPresented = false
 
     var body: some View {
+        ZStack {
+            // Main content
+            mainContentView
+                .opacity(isSettingsPresented ? 0.3 : 1.0)
+                .disabled(isSettingsPresented)
+
+            // Settings view slides down from top
+            if isSettingsPresented {
+                SettingsView(
+                    settings: settings,
+                    onDismiss: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            isSettingsPresented = false
+                        }
+                        monitorManager.restartUpdating()
+                    }
+                )
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .zIndex(1)
+            }
+        }
+        .frame(width: 320, height: 500)
+        .onKeyPress(.upArrow) {
+            guard !isSettingsPresented else { return .ignored }
+            navigateUp()
+            return .handled
+        }
+        .onKeyPress(.downArrow) {
+            guard !isSettingsPresented else { return .ignored }
+            navigateDown()
+            return .handled
+        }
+        .onKeyPress(.return) {
+            guard !isSettingsPresented else { return .ignored }
+            openSelectedMonitor()
+            return .handled
+        }
+        .onKeyPress(.escape) {
+            if isSettingsPresented {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isSettingsPresented = false
+                }
+                monitorManager.restartUpdating()
+                return .handled
+            }
+            return .ignored
+        }
+    }
+
+    private var mainContentView: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header with status summary
             HeaderView(monitorManager: monitorManager, openSettingsWindow: openSettingsWindow)
@@ -76,52 +123,12 @@ struct MonitorsListView: View {
                 .padding(.vertical, 8)
         }
         .padding(.horizontal, 6)
-        .frame(width: 320, height: 500)
-        .onKeyPress(.upArrow) {
-            navigateUp()
-            return .handled
-        }
-        .onKeyPress(.downArrow) {
-            navigateDown()
-            return .handled
-        }
-        .onKeyPress(.return) {
-            openSelectedMonitor()
-            return .handled
-        }
     }
 
     private func openSettingsWindow() {
-        // If window already exists, bring it to front
-        if let existingWindow = settingsWindow {
-            if existingWindow.isVisible {
-                existingWindow.makeKeyAndOrderFront(nil)
-                NSApp.activate(ignoringOtherApps: true)
-                return
-            }
+        withAnimation(.easeInOut(duration: 0.3)) {
+            isSettingsPresented = true
         }
-
-        // Create new settings window
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 400, height: 500),
-            styleMask: [.titled, .closable],
-            backing: .buffered,
-            defer: false
-        )
-        window.title = "Glancea Settings"
-        window.contentView = NSHostingView(
-            rootView: SettingsView(settings: settings)
-                .onDisappear {
-                    monitorManager.restartUpdating()
-                }
-        )
-        window.center()
-        window.makeKeyAndOrderFront(nil)
-        // Keep reference to prevent deallocation
-        window.isReleasedWhenClosed = false
-
-        // Store reference
-        settingsWindow = window
     }
 
     private func navigateUp() {

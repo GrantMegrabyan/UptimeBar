@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Bindable var settings: AppSettings
-    @Environment(\.dismiss) private var dismiss
+    var onDismiss: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -21,7 +21,7 @@ struct SettingsView: View {
                 Spacer()
 
                 Button(action: {
-                    dismiss()
+                    onDismiss()
                 }) {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.secondary)
@@ -112,14 +112,15 @@ struct SettingsView: View {
                 Spacer()
 
                 Button("Done") {
-                    dismiss()
+                    onDismiss()
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
             }
             .padding(12)
         }
-        .frame(width: 400, height: 500)
+        .frame(width: 320, height: 500)
+        .background(Color(nsColor: .windowBackgroundColor))
     }
 }
 
@@ -159,5 +160,5 @@ struct InfoRow: View {
 }
 
 #Preview {
-    SettingsView(settings: AppSettings())
+    SettingsView(settings: AppSettings(), onDismiss: {})
 }
