@@ -19,13 +19,10 @@ enum StatusFilter: String, CaseIterable {
 struct MonitorsListView: View {
     @Bindable var monitorManager: MonitorManager
     @Bindable var settings: AppSettings
-    @State private var currentTime = Date()
     @State private var selectedFilter: StatusFilter = .all
     @State private var isIssuesSectionExpanded = true
     @State private var isHealthySectionExpanded = true
     @State private var selectedMonitorId: Int?
-
-    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     // Track the settings window to prevent multiple instances
     @State private var settingsWindow: NSWindow?
@@ -141,15 +138,6 @@ struct MonitorsListView: View {
                 .buttonStyle(.plain)
                 .help("Settings")
 
-                // Last updated
-                HStack(spacing: 4) {
-                    Image(systemName: "clock")
-                        .font(.system(size: 10))
-                    Text(timeAgo(monitorManager.lastUpdated))
-                        .font(.system(size: 11))
-                }
-                .foregroundStyle(.secondary)
-
                 Spacer()
 
                 // Refresh button
@@ -192,9 +180,6 @@ struct MonitorsListView: View {
         .onKeyPress(.return) {
             openSelectedMonitor()
             return .handled
-        }
-        .onReceive(timer) { time in
-            currentTime = time
         }
     }
 
@@ -316,12 +301,6 @@ struct MonitorsListView: View {
         case .down:
             return monitors.filter { $0.status == .down }.sorted { $0.id < $1.id }
         }
-    }
-
-    private func timeAgo(_ date: Date) -> String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: date, relativeTo: currentTime)
     }
 }
 
