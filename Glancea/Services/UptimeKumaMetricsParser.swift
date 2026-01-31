@@ -15,7 +15,7 @@ enum UptimeKumaMetricsParser {
     /// - Important: Uses `monitor_id` as the primary key, merges fields from
     ///   `monitor_status` and `monitor_response_time`.
     static func parseMonitors(from metricsText: String) -> [Monitor] {
-        logger.info("Starting to parse metrics, text length: \(metricsText.count)")
+        logger.debug("Starting to parse metrics, text length: \(metricsText.count)")
         // Accumulate partial records keyed by monitor_id
         struct Partial {
             var id: Int
@@ -64,10 +64,7 @@ enum UptimeKumaMetricsParser {
             partialByID[id] = partial
         }
 
-        logger.info("Found \(partialByID.count) unique monitor IDs")
-        for (id, partial) in partialByID {
-            logger.info("Monitor \(id): name=\(partial.name ?? "nil"), url=\(partial.url ?? "nil"), status=\(String(describing: partial.status)), responseTime=\(String(describing: partial.responseTimeMs))")
-        }
+        logger.debug("Found \(partialByID.count) unique monitor IDs")
 
         // Build final Monitors; only include ones with at least name+url
         // (you can relax this if you want partial entries).
@@ -84,7 +81,7 @@ enum UptimeKumaMetricsParser {
             }
             .sorted { $0.id < $1.id }
 
-        logger.info("Returning \(monitors.count) monitors after filtering")
+        logger.debug("Returning \(monitors.count) monitors after filtering")
         return monitors
     }
 

@@ -36,11 +36,9 @@ class UptimeKumaMetricsProvider {
 
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
-            logger.info("Received \(data.count) bytes from metrics endpoint")
             let metricsText = String(data: data, encoding: .utf8) ?? ""
-            logger.info("Metrics text: \(metricsText.prefix(500))")
             let monitors = UptimeKumaMetricsParser.parseMonitors(from: metricsText)
-            logger.info("Parsed \(monitors.count) monitors")
+            logger.debug("Parsed \(monitors.count) monitors")
             return monitors
         } catch {
             logger.error("Failed to fetch uptime metrics: \(error.localizedDescription)")
