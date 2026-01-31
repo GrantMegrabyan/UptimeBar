@@ -22,36 +22,10 @@ struct MonitorsListView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header with status summary
-            HStack(spacing: 6) {
-                Text("\(monitors.count) monitors")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
-
-                if upCount > 0 {
-                    Text("•")
-                        .foregroundStyle(.secondary)
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 9))
-                        .foregroundStyle(.green)
-                    Text("\(upCount)")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-
-                if downCount > 0 {
-                    Text("•")
-                        .foregroundStyle(.secondary)
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 9))
-                        .foregroundStyle(.red)
-                    Text("\(downCount)")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(.horizontal, 14)
-            .padding(.top, 12)
-            .padding(.bottom, 8)
+            HeaderView(monitorManager: monitorManager, openSettingsWindow: openSettingsWindow)
+                .padding(.horizontal, 14)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
 
             Divider()
                 .padding(.horizontal, 8)
@@ -238,14 +212,6 @@ struct MonitorsListView: View {
 
     private var monitors: [Monitor] {
         monitorManager.monitors
-    }
-
-    private var upCount: Int {
-        monitors.filter { $0.status == .up }.count
-    }
-
-    private var downCount: Int {
-        monitors.filter { $0.status == .down }.count
     }
 
     private var warningCount: Int {
