@@ -93,18 +93,18 @@ struct StatusIconView: View {
             switch status {
             case .up:
                 Circle()
-                    .fill(Color.green)
+                    .fill(.green)
             case .down:
                 Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(Color.red)
+                    .foregroundStyle(.red)
                     .font(.system(size: 12))
             case .pending, nil:
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(.orange)
                     .font(.system(size: 12))
             case .maintenance:
                 Image(systemName: "gearshape.fill")
-                    .foregroundStyle(Color.blue)
+                    .foregroundStyle(.blue)
                     .font(.system(size: 12))
             }
         }
@@ -186,7 +186,7 @@ struct ProgressBar: View {
 
     var body: some View {
         RoundedRectangle(cornerRadius: 3)
-            .fill(Color.secondary.opacity(0.2))
+            .fill(.secondary.opacity(0.2))
             .overlay(
                 RoundedRectangle(cornerRadius: 3)
                     .fill(color)
