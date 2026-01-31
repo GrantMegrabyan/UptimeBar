@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 @Observable
 class MonitorManager {
     var monitors: [Monitor] = []
@@ -15,7 +16,7 @@ class MonitorManager {
     var isRefreshing: Bool = false
 
     private var provider: UptimeKumaMetricsProvider
-    private var updateTask: Task<Void, Never>?
+    @ObservationIgnored private var updateTask: Task<Void, Never>?
     private let settings: AppSettings
 
     init(settings: AppSettings) {

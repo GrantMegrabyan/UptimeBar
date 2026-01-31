@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 @Observable
 class AppSettings {
     var uptimeKumaURL: String {
