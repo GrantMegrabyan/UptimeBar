@@ -41,10 +41,7 @@ struct MonitorRowView: View {
             .padding(.vertical, 6)
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(isHovered ? Color.accentColor : .clear)
-            )
+            .background(isHovered ? Color.accentColor : .clear, in: .rect(cornerRadius: 6))
         }
         .buttonStyle(.plain)
         .onHover { hovering in
