@@ -184,10 +184,6 @@ struct MonitorsListView: View {
         monitorManager.monitors
     }
 
-    private var warningCount: Int {
-        monitors.filter { $0.status == .pending || $0.status == nil }.count
-    }
-
     private var issueMonitors: [Monitor] {
         monitors.filter { $0.status != .up }.sorted { $0.id < $1.id }
     }
