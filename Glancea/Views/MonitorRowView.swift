@@ -11,7 +11,7 @@ import AppKit
 struct MonitorRowView: View {
     let monitor: Monitor
     @State private var isHovered = false
-
+    
     var body: some View {
         Button(action: {
             if let url = URL(string: monitor.url) {
@@ -22,15 +22,15 @@ struct MonitorRowView: View {
                 // Status indicator (larger, with icon)
                 StatusIconView(status: monitor.status)
                     .frame(width: 12, height: 12)
-
+                
                 // Monitor name
                 Text(monitor.name)
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(isHovered ? .white : .primary)
                     .lineLimit(1)
-
+                
                 Spacer(minLength: 8)
-
+                
                 // Response time with progress bar
                 ResponseTimeView(
                     responseTimeMs: monitor.responseTimeMs,
@@ -51,7 +51,7 @@ struct MonitorRowView: View {
         }
         .help(tooltipText)
     }
-
+    
     private var tooltipText: String {
         var text = "URL: \(monitor.url)\n"
         text += "Status: \(statusText)\n"
@@ -65,7 +65,7 @@ struct MonitorRowView: View {
         }
         return text
     }
-
+    
     private var statusText: String {
         switch monitor.status {
         case .up:
@@ -84,7 +84,7 @@ struct MonitorRowView: View {
 
 struct StatusIconView: View {
     let status: MonitorStatus?
-
+    
     var body: some View {
         ZStack {
             switch status {
@@ -111,7 +111,7 @@ struct StatusIconView: View {
 struct ResponseTimeView: View {
     let responseTimeMs: Double?
     let isHovered: Bool
-
+    
     var body: some View {
         HStack(spacing: 6) {
             // Progress bar
@@ -119,7 +119,7 @@ struct ResponseTimeView: View {
                 ProgressBar(value: progressValue, color: performanceColor)
                     .frame(width: 50, height: 6)
             }
-
+            
             // Response time text
             Text(responseTimeText)
                 .font(.system(size: 11, weight: .medium))
@@ -127,12 +127,12 @@ struct ResponseTimeView: View {
                 .frame(minWidth: 45, alignment: .trailing)
         }
     }
-
+    
     private var responseTimeText: String {
         guard let responseTime = responseTimeMs else {
             return "—"
         }
-
+        
         if responseTime < 0 {
             return "—"
         } else if responseTime < 1000 {
@@ -142,12 +142,12 @@ struct ResponseTimeView: View {
             return "\(seconds.formatted(.number.precision(.fractionLength(1)))) s"
         }
     }
-
+    
     private var performanceColor: Color {
         guard let responseTime = responseTimeMs, responseTime >= 0 else {
             return .secondary
         }
-
+        
         if responseTime < 100 {
             return Color(red: 0.06, green: 0.73, blue: 0.51) // Green
         } else if responseTime < 300 {
@@ -158,12 +158,12 @@ struct ResponseTimeView: View {
             return Color(red: 0.94, green: 0.27, blue: 0.27) // Red
         }
     }
-
+    
     private var progressValue: Double {
         guard let responseTime = responseTimeMs, responseTime >= 0 else {
             return 0
         }
-
+        
         // Scale: 0-100ms = 0-0.2, 100-300ms = 0.2-0.5, 300-1000ms = 0.5-0.8, >1000ms = 0.8-1.0
         if responseTime < 100 {
             return 0.2 * (responseTime / 100)
@@ -180,7 +180,7 @@ struct ResponseTimeView: View {
 struct ProgressBar: View {
     let value: Double
     let color: Color
-
+    
     var body: some View {
         RoundedRectangle(cornerRadius: 3)
             .fill(.secondary.opacity(0.2))
@@ -194,35 +194,11 @@ struct ProgressBar: View {
 }
 
 #Preview {
+    let monitors = MonitorManager.sampleMixedStatusMonitors
     VStack(alignment: .leading, spacing: 2) {
-        MonitorRowView(monitor: Monitor(
-            id: 1,
-            name: "Jellyfin",
-            url: "http://test.com",
-            status: .up,
-            responseTimeMs: 45
-        ))
-        MonitorRowView(monitor: Monitor(
-            id: 2,
-            name: "Sonarr",
-            url: "http://test.com",
-            status: .down,
-            responseTimeMs: 1200
-        ))
-        MonitorRowView(monitor: Monitor(
-            id: 3,
-            name: "Radarr",
-            url: "http://test.com",
-            status: .pending,
-            responseTimeMs: 523
-        ))
-        MonitorRowView(monitor: Monitor(
-            id: 4,
-            name: "Pi-hole Primary",
-            url: "http://test.com",
-            status: .up,
-            responseTimeMs: 89
-        ))
+        ForEach(monitors, id: \.id) {
+            MonitorRowView(monitor: $0)
+        }
     }
     .padding(6)
     .frame(width: 320)

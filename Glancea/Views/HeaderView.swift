@@ -16,7 +16,7 @@ struct HeaderView: View {
             Text("\(monitors.count) monitors")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
-
+            
             if upCount > 0 {
                 Text("•")
                     .foregroundStyle(.secondary)
@@ -27,7 +27,7 @@ struct HeaderView: View {
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
             }
-
+            
             if downCount > 0 {
                 Text("•")
                     .foregroundStyle(.secondary)
@@ -60,24 +60,16 @@ struct HeaderView: View {
     private var upCount: Int {
         monitors.filter { $0.status == .up }.count
     }
-
+    
     private var downCount: Int {
         monitors.filter { $0.status == .down }.count
     }
 }
 
 #Preview {
-     @Previewable @State var manager = {
-         let s = AppSettings()
-         let m = MonitorManager(settings: s)
-         m.monitors = [
-             Monitor(id: 1, name: "Test 1", url: "http://test.com", status: .up, responseTimeMs: 45),
-             Monitor(id: 2, name: "Test 2", url: "http://test.com", status: .down, responseTimeMs: 0),
-         ]
-         return m
-     }()
-
-     HeaderView(monitorManager: manager, openSettingsWindow: {})
+    @Previewable @State var manager = MonitorManager.preview(with: MonitorManager.sampleMixedStatusMonitors)
+    
+    HeaderView(monitorManager: manager, openSettingsWindow: {})
         .frame(width: 300)
-         .padding()
- }
+        .padding()
+}
