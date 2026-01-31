@@ -13,7 +13,6 @@ struct MonitorsListView: View {
     @Bindable var settings: AppSettings
     @State private var isIssuesSectionExpanded = true
     @State private var isHealthySectionExpanded = true
-    @State private var selectedMonitorId: Int?
     @State private var isSettingsPresented = false
 
     var body: some View {
@@ -39,31 +38,6 @@ struct MonitorsListView: View {
             }
         }
         .frame(width: 320, height: 500)
-        .onKeyPress(.upArrow) {
-            guard !isSettingsPresented else { return .ignored }
-            navigateUp()
-            return .handled
-        }
-        .onKeyPress(.downArrow) {
-            guard !isSettingsPresented else { return .ignored }
-            navigateDown()
-            return .handled
-        }
-        .onKeyPress(.return) {
-            guard !isSettingsPresented else { return .ignored }
-            openSelectedMonitor()
-            return .handled
-        }
-        .onKeyPress(.escape) {
-            if isSettingsPresented {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    isSettingsPresented = false
-                }
-                monitorManager.restartUpdating()
-                return .handled
-            }
-            return .ignored
-        }
     }
 
     private var mainContentView: some View {
@@ -129,55 +103,6 @@ struct MonitorsListView: View {
         withAnimation(.easeInOut(duration: 0.3)) {
             isSettingsPresented = true
         }
-    }
-
-    private func navigateUp() {
-        let visibleMonitors = displayedMonitors
-        guard !visibleMonitors.isEmpty else { return }
-
-        if let currentId = selectedMonitorId,
-            let currentIndex = visibleMonitors.firstIndex(where: { $0.id == currentId }),
-            currentIndex > 0
-        {
-            selectedMonitorId = visibleMonitors[currentIndex - 1].id
-        } else {
-            selectedMonitorId = visibleMonitors.first?.id
-        }
-    }
-
-    private func navigateDown() {
-        let visibleMonitors = displayedMonitors
-        guard !visibleMonitors.isEmpty else { return }
-
-        if let currentId = selectedMonitorId,
-            let currentIndex = visibleMonitors.firstIndex(where: { $0.id == currentId }),
-            currentIndex < visibleMonitors.count - 1
-        {
-            selectedMonitorId = visibleMonitors[currentIndex + 1].id
-        } else {
-            selectedMonitorId = visibleMonitors.first?.id
-        }
-    }
-
-    private func openSelectedMonitor() {
-        guard let selectedId = selectedMonitorId,
-            let monitor = monitors.first(where: { $0.id == selectedId }),
-            let url = URL(string: monitor.url)
-        else {
-            return
-        }
-        NSWorkspace.shared.open(url)
-    }
-
-    private var displayedMonitors: [Monitor] {
-        var result: [Monitor] = []
-        if isIssuesSectionExpanded {
-            result.append(contentsOf: issueMonitors)
-        }
-        if isHealthySectionExpanded {
-            result.append(contentsOf: healthyMonitors)
-        }
-        return result
     }
 
     private var monitors: [Monitor] {
