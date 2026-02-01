@@ -17,10 +17,14 @@ class AppSettings {
     var refreshInterval: Int
 
     init() {
-        self.uptimeKumaURL = UserDefaults.standard.string(forKey: "uptimeKumaURL") ?? "http://192.168.1.181:3001/metrics"
-        self.uptimeKumaUsername = UserDefaults.standard.string(forKey: "uptimeKumaUsername") ?? "grant"
+        self.uptimeKumaURL = UserDefaults.standard.string(forKey: "uptimeKumaURL") ?? ""
+        self.uptimeKumaUsername = UserDefaults.standard.string(forKey: "uptimeKumaUsername") ?? ""
         self.uptimeKumaPassword = UserDefaults.standard.string(forKey: "uptimeKumaPassword") ?? ""
         self.refreshInterval = UserDefaults.standard.integer(forKey: "refreshInterval") == 0 ? 120 : UserDefaults.standard.integer(forKey: "refreshInterval")
+    }
+
+    var isConfigured: Bool {
+        !uptimeKumaURL.isEmpty
     }
 
     func save() {
@@ -47,6 +51,16 @@ extension AppSettings {
         settings.uptimeKumaUsername = username
         settings.uptimeKumaPassword = password
         settings.refreshInterval = refreshInterval
+        return settings
+    }
+    
+    static func previewEmpty() -> AppSettings {
+        let settings = AppSettings()
+        // Override with preview-specific values
+        settings.uptimeKumaURL = ""
+        settings.uptimeKumaUsername = ""
+        settings.uptimeKumaPassword = ""
+        settings.refreshInterval = 0
         return settings
     }
 }

@@ -72,7 +72,31 @@ struct MonitorsListView: View {
                 .padding(.bottom, 4)
             }
 
+            // Setup required message
+            if monitorManager.needsSetup {
+                VStack(spacing: 8) {
+                    Spacer()
+                    Image(systemName: "gear.badge")
+                        .font(.system(size: 28))
+                        .foregroundStyle(.secondary)
+                    Text("Setup Required")
+                        .font(.system(size: 13, weight: .semibold))
+                    Text("Configure your Uptime Kuma URL to get started.")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    Button("Open Settings") {
+                        openSettingsWindow()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+
             // Monitors list with smart grouping
+            if !monitorManager.needsSetup {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     // Issues section
@@ -106,7 +130,8 @@ struct MonitorsListView: View {
                 }
             }
             .frame(maxHeight: 600)
-            
+            }
+
             // Footer
             Divider()
                 .padding(.horizontal, 8)
@@ -202,6 +227,13 @@ struct CollapsibleGroupHeader: View {
     @Previewable @State var manager = MonitorManager.previewError(
         .networkError(underlying: URLError(.notConnectedToInternet))
     )
+
+    MonitorsListView(monitorManager: manager, settings: settings)
+}
+
+#Preview("Setup Required") {
+    @Previewable @State var settings = AppSettings.previewEmpty()
+    @Previewable @State var manager = MonitorManager.previewNeedsSetup()
 
     MonitorsListView(monitorManager: manager, settings: settings)
 }

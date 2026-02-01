@@ -15,7 +15,8 @@ class MonitorManager {
     var lastUpdated: Date = .now
     var isRefreshing: Bool = false
     var errorMessage: String?
-    
+    var needsSetup: Bool = false
+
     private var provider: any MetricsProvider
     @ObservationIgnored private var updateTask: Task<Void, Never>?
     
@@ -53,6 +54,11 @@ class MonitorManager {
     }
     
     private func updateMonitors() async {
+        guard settings.isConfigured else {
+            needsSetup = true
+            return
+        }
+        needsSetup = false
         isRefreshing = true
         do {
             monitors = try await provider.getMonitors()
@@ -121,6 +127,14 @@ extension MonitorManager {
         let settings = AppSettings.preview()
         let manager = MonitorManager(settings: settings) { _ in
             PreviewMetricsProvider(monitors: monitors)
+        }
+        return manager
+    }
+
+    static func previewNeedsSetup() -> MonitorManager {
+        let settings = AppSettings.previewEmpty()
+        let manager = MonitorManager(settings: settings) { _ in
+            PreviewMetricsProvider(monitors: [])
         }
         return manager
     }
