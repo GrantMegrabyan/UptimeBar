@@ -11,17 +11,19 @@ import SwiftUI
 struct MonitorsListView: View {
     @Bindable var monitorManager: MonitorManager
     @Bindable var settings: AppSettings
+    @Binding var isMenuPresented: Bool
     @State private var isIssuesSectionExpanded = true
     @State private var isHealthySectionExpanded = true
     @State private var isSettingsPresented = false
-    
+    @FocusState private var isFocused: Bool
+
     var body: some View {
         ZStack {
             // Main content
             mainContentView
                 .opacity(isSettingsPresented ? 0.3 : 1.0)
                 .disabled(isSettingsPresented)
-            
+
             // Settings view slides down from top
             if isSettingsPresented {
                 SettingsView(
@@ -36,6 +38,23 @@ struct MonitorsListView: View {
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .zIndex(1)
             }
+        }
+        .focusable()
+        .focused($isFocused)
+        .focusEffectDisabled()
+        .onExitCommand {
+            // Close settings if open, otherwise close the menu
+            if isSettingsPresented {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isSettingsPresented = false
+                }
+                monitorManager.restartUpdating()
+            } else {
+                isMenuPresented = false
+            }
+        }
+        .onAppear {
+            isFocused = true
         }
         .frame(width: 320, height: 500)
     }
@@ -197,29 +216,33 @@ struct CollapsibleGroupHeader: View {
 #Preview("All Green") {
     @Previewable @State var settings = AppSettings.preview()
     @Previewable @State var manager = MonitorManager.preview(with: MonitorManager.sampleAllGreenMonitors)
+    @Previewable @State var isMenuPresented = true
 
-    MonitorsListView(monitorManager: manager, settings: settings)
+    MonitorsListView(monitorManager: manager, settings: settings, isMenuPresented: $isMenuPresented)
 }
 
 #Preview("Mixed Status") {
     @Previewable @State var settings = AppSettings.preview()
     @Previewable @State var manager = MonitorManager.preview(with: MonitorManager.sampleMixedStatusMonitors)
+    @Previewable @State var isMenuPresented = true
 
-    MonitorsListView(monitorManager: manager, settings: settings)
+    MonitorsListView(monitorManager: manager, settings: settings, isMenuPresented: $isMenuPresented)
 }
 
 #Preview("Critical Status") {
     @Previewable @State var settings = AppSettings.preview()
     @Previewable @State var manager = MonitorManager.preview(with: MonitorManager.sampleCriticalStatusMonitors)
+    @Previewable @State var isMenuPresented = true
 
-    MonitorsListView(monitorManager: manager, settings: settings)
+    MonitorsListView(monitorManager: manager, settings: settings, isMenuPresented: $isMenuPresented)
 }
 
 #Preview("Auth Error") {
     @Previewable @State var settings = AppSettings.preview()
     @Previewable @State var manager = MonitorManager.previewError(.authenticationFailed)
+    @Previewable @State var isMenuPresented = true
 
-    MonitorsListView(monitorManager: manager, settings: settings)
+    MonitorsListView(monitorManager: manager, settings: settings, isMenuPresented: $isMenuPresented)
 }
 
 #Preview("Network Error") {
@@ -227,20 +250,23 @@ struct CollapsibleGroupHeader: View {
     @Previewable @State var manager = MonitorManager.previewError(
         .networkError(underlying: URLError(.notConnectedToInternet))
     )
+    @Previewable @State var isMenuPresented = true
 
-    MonitorsListView(monitorManager: manager, settings: settings)
+    MonitorsListView(monitorManager: manager, settings: settings, isMenuPresented: $isMenuPresented)
 }
 
 #Preview("Setup Required") {
     @Previewable @State var settings = AppSettings.previewEmpty()
     @Previewable @State var manager = MonitorManager.previewNeedsSetup()
+    @Previewable @State var isMenuPresented = true
 
-    MonitorsListView(monitorManager: manager, settings: settings)
+    MonitorsListView(monitorManager: manager, settings: settings, isMenuPresented: $isMenuPresented)
 }
 
 #Preview("Timeout Error") {
     @Previewable @State var settings = AppSettings.preview()
     @Previewable @State var manager = MonitorManager.previewError(.timeout)
+    @Previewable @State var isMenuPresented = true
 
-    MonitorsListView(monitorManager: manager, settings: settings)
+    MonitorsListView(monitorManager: manager, settings: settings, isMenuPresented: $isMenuPresented)
 }

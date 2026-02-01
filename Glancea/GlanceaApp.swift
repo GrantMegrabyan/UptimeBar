@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
+import MenuBarExtraAccess
 
 @main
 struct GlanceaApp: App {
     @State private var settings = AppSettings()
     @State private var monitorManager: MonitorManager
+    @State private var isMenuPresented = false
 
     init() {
         let settings = AppSettings()
@@ -22,7 +24,11 @@ struct GlanceaApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MonitorsListView(monitorManager: monitorManager, settings: settings)
+            MonitorsListView(
+                monitorManager: monitorManager,
+                settings: settings,
+                isMenuPresented: $isMenuPresented
+            )
         } label: {
             HStack(spacing: 4) {
                 Image(systemName: monitorManager.aggregateStatus.icon)
@@ -36,6 +42,7 @@ struct GlanceaApp: App {
             }
         }
         .menuBarExtraStyle(.window)
+        .menuBarExtraAccess(isPresented: $isMenuPresented)
     }
 
     private var badgeText: String? {
