@@ -127,6 +127,22 @@ struct SettingsView: View {
                         }
                     }
                     
+                    // Display Settings
+                    SettingsSection(title: "Display") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Toggle(isOn: $settings.showUnhealthyCountInMenuBar) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Show unhealthy monitor count")
+                                        .font(.system(size: 12))
+                                    Text("Display the number of unhealthy monitors in the menu bar")
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .toggleStyle(.switch)
+                        }
+                    }
+
                     // Refresh Settings
                     SettingsSection(title: "Refresh Interval") {
                         VStack(alignment: .leading, spacing: 8) {
@@ -135,13 +151,13 @@ struct SettingsView: View {
                                     get: { Double(settings.refreshInterval) },
                                     set: { settings.refreshInterval = Int($0) }
                                 ), in: 30...600, step: 30)
-                                
+
                                 Text("\(settings.refreshInterval)s")
                                     .font(.system(size: 12, weight: .medium, design: .monospaced))
                                     .foregroundStyle(.secondary)
                                     .frame(width: 50, alignment: .trailing)
                             }
-                            
+
                             Text("How often to automatically refresh monitor data")
                                 .font(.system(size: 11))
                                 .foregroundStyle(.secondary)

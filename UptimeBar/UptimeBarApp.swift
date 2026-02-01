@@ -46,6 +46,8 @@ struct UptimeBarApp: App {
     }
 
     private var badgeText: String? {
+        guard settings.showUnhealthyCountInMenuBar else { return nil }
+
         let totalCount = monitorManager.monitors.count
         guard totalCount > 0 else { return nil }
 

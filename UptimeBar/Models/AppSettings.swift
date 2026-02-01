@@ -15,12 +15,20 @@ class AppSettings {
     var uptimeKumaUsername: String
     var uptimeKumaPassword: String
     var refreshInterval: Int
+    var showUnhealthyCountInMenuBar: Bool
 
     init() {
         self.uptimeKumaURL = UserDefaults.standard.string(forKey: "uptimeKumaURL") ?? ""
         self.uptimeKumaUsername = UserDefaults.standard.string(forKey: "uptimeKumaUsername") ?? ""
         self.uptimeKumaPassword = UserDefaults.standard.string(forKey: "uptimeKumaPassword") ?? ""
         self.refreshInterval = UserDefaults.standard.integer(forKey: "refreshInterval") == 0 ? 120 : UserDefaults.standard.integer(forKey: "refreshInterval")
+
+        // Default to true if not set
+        if UserDefaults.standard.object(forKey: "showUnhealthyCountInMenuBar") == nil {
+            self.showUnhealthyCountInMenuBar = true
+        } else {
+            self.showUnhealthyCountInMenuBar = UserDefaults.standard.bool(forKey: "showUnhealthyCountInMenuBar")
+        }
     }
 
     var isConfigured: Bool {
@@ -52,6 +60,7 @@ class AppSettings {
         UserDefaults.standard.set(uptimeKumaUsername, forKey: "uptimeKumaUsername")
         UserDefaults.standard.set(uptimeKumaPassword, forKey: "uptimeKumaPassword")
         UserDefaults.standard.set(refreshInterval, forKey: "refreshInterval")
+        UserDefaults.standard.set(showUnhealthyCountInMenuBar, forKey: "showUnhealthyCountInMenuBar")
     }
 }
 
@@ -63,7 +72,8 @@ extension AppSettings {
         url: String = "http://192.168.1.1:3001/metrics",
         username: String = "preview-user",
         password: String = "preview-pass",
-        refreshInterval: Int = 5
+        refreshInterval: Int = 5,
+        showUnhealthyCountInMenuBar: Bool = true
     ) -> AppSettings {
         let settings = AppSettings()
         // Override with preview-specific values
@@ -71,6 +81,7 @@ extension AppSettings {
         settings.uptimeKumaUsername = username
         settings.uptimeKumaPassword = password
         settings.refreshInterval = refreshInterval
+        settings.showUnhealthyCountInMenuBar = showUnhealthyCountInMenuBar
         return settings
     }
     
