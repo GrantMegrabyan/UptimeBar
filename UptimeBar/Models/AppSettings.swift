@@ -21,7 +21,10 @@ class AppSettings {
         self.uptimeKumaURL = UserDefaults.standard.string(forKey: "uptimeKumaURL") ?? ""
         self.uptimeKumaUsername = UserDefaults.standard.string(forKey: "uptimeKumaUsername") ?? ""
         self.uptimeKumaPassword = UserDefaults.standard.string(forKey: "uptimeKumaPassword") ?? ""
-        self.refreshInterval = UserDefaults.standard.integer(forKey: "refreshInterval") == 0 ? 120 : UserDefaults.standard.integer(forKey: "refreshInterval")
+
+        // Normalize refresh interval to one of the valid preset values
+        let savedInterval = UserDefaults.standard.integer(forKey: "refreshInterval") == 0 ? 120 : UserDefaults.standard.integer(forKey: "refreshInterval")
+        self.refreshInterval = Self.normalizeRefreshInterval(savedInterval)
 
         // Default to true if not set
         if UserDefaults.standard.object(forKey: "showUnhealthyCountInMenuBar") == nil {
@@ -29,6 +32,16 @@ class AppSettings {
         } else {
             self.showUnhealthyCountInMenuBar = UserDefaults.standard.bool(forKey: "showUnhealthyCountInMenuBar")
         }
+    }
+
+    /// Valid refresh interval presets in seconds
+    static let validRefreshIntervals = [30, 60, 120, 300, 600]
+
+    /// Normalizes a refresh interval to the nearest valid preset value
+    private static func normalizeRefreshInterval(_ interval: Int) -> Int {
+        // Find the closest valid interval
+        let closest = validRefreshIntervals.min(by: { abs($0 - interval) < abs($1 - interval) })
+        return closest ?? 120  // Default to 2 minutes if something goes wrong
     }
 
     var isConfigured: Bool {

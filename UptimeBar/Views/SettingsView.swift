@@ -146,17 +146,15 @@ struct SettingsView: View {
                     // Refresh Settings
                     SettingsSection(title: "Refresh Interval") {
                         VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Slider(value: Binding(
-                                    get: { Double(settings.refreshInterval) },
-                                    set: { settings.refreshInterval = Int($0) }
-                                ), in: 30...600, step: 30)
-
-                                Text("\(settings.refreshInterval)s")
-                                    .font(.system(size: 12, weight: .medium, design: .monospaced))
-                                    .foregroundStyle(.secondary)
-                                    .frame(width: 50, alignment: .trailing)
+                            Picker("Refresh Interval", selection: $settings.refreshInterval) {
+                                Text("30 seconds").tag(30)
+                                Text("1 minute").tag(60)
+                                Text("2 minutes").tag(120)
+                                Text("5 minutes").tag(300)
+                                Text("10 minutes").tag(600)
                             }
+                            .pickerStyle(.menu)
+                            .labelsHidden()
 
                             Text("How often to automatically refresh monitor data")
                                 .font(.system(size: 11))
