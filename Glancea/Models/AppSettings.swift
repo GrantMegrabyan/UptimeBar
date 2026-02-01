@@ -27,6 +27,26 @@ class AppSettings {
         !uptimeKumaURL.isEmpty
     }
 
+    var urlValidationError: String? {
+        let trimmed = uptimeKumaURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return nil }
+        guard let url = URL(string: trimmed) else {
+            return "Invalid URL format"
+        }
+        guard let scheme = url.scheme, ["http", "https"].contains(scheme.lowercased()) else {
+            return "URL must start with http:// or https://"
+        }
+        guard url.host != nil else {
+            return "URL must include a hostname"
+        }
+        return nil
+    }
+
+    var isURLValid: Bool {
+        let trimmed = uptimeKumaURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty || urlValidationError == nil
+    }
+
     func save() {
         UserDefaults.standard.set(uptimeKumaURL, forKey: "uptimeKumaURL")
         UserDefaults.standard.set(uptimeKumaUsername, forKey: "uptimeKumaUsername")

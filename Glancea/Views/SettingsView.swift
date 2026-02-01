@@ -10,6 +10,13 @@ import SwiftUI
 struct SettingsView: View {
     @Bindable var settings: AppSettings
     var onDismiss: () -> Void = {}
+    @State private var testResult: TestConnectionResult?
+    @State private var isTesting = false
+
+    enum TestConnectionResult {
+        case success(Int)
+        case failure(String)
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -47,6 +54,15 @@ struct SettingsView: View {
                                 TextField("http://localhost:3001/metrics", text: $settings.uptimeKumaURL)
                                     .textFieldStyle(.roundedBorder)
                                     .font(.system(size: 12, design: .monospaced))
+                                    .onChange(of: settings.uptimeKumaURL) {
+                                        testResult = nil
+                                    }
+
+                                if let error = settings.urlValidationError {
+                                    Text(error)
+                                        .font(.system(size: 10))
+                                        .foregroundStyle(.red)
+                                }
                             }
                             
                             // Username
@@ -69,6 +85,44 @@ struct SettingsView: View {
                                 SecureField("Password", text: $settings.uptimeKumaPassword)
                                     .textFieldStyle(.roundedBorder)
                                     .font(.system(size: 12))
+                            }
+
+                            // Test Connection
+                            HStack(spacing: 8) {
+                                Button {
+                                    testConnection()
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        if isTesting {
+                                            ProgressView()
+                                                .controlSize(.mini)
+                                        }
+                                        Text("Test Connection")
+                                    }
+                                }
+                                .controlSize(.small)
+                                .disabled(!settings.isURLValid || settings.uptimeKumaURL.isEmpty || isTesting)
+
+                                if let result = testResult {
+                                    switch result {
+                                    case .success(let count):
+                                        HStack(spacing: 3) {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundStyle(.green)
+                                            Text("Connected — \(count) monitors")
+                                                .foregroundStyle(.green)
+                                        }
+                                        .font(.system(size: 11))
+                                    case .failure(let message):
+                                        HStack(spacing: 3) {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundStyle(.red)
+                                            Text(message)
+                                                .foregroundStyle(.red)
+                                        }
+                                        .font(.system(size: 11))
+                                    }
+                                }
                             }
                         }
                     }
@@ -117,6 +171,7 @@ struct SettingsView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
+                .disabled(!settings.isURLValid)
             }
             .padding(12)
         }
@@ -124,6 +179,23 @@ struct SettingsView: View {
         .background(Color(nsColor: .windowBackgroundColor))
         .onDisappear {
             settings.save()
+        }
+    }
+
+    private func testConnection() {
+        isTesting = true
+        testResult = nil
+        Task {
+            let provider = UptimeKumaMetricsProvider(settings: settings)
+            do {
+                let monitors = try await provider.getMonitors()
+                testResult = .success(monitors.count)
+            } catch let error as MonitorFetchError {
+                testResult = .failure(error.userMessage)
+            } catch {
+                testResult = .failure(error.localizedDescription)
+            }
+            isTesting = false
         }
     }
 }
