@@ -30,3 +30,24 @@ class AppSettings {
         UserDefaults.standard.set(refreshInterval, forKey: "refreshInterval")
     }
 }
+
+#if DEBUG
+@MainActor
+extension AppSettings {
+    /// Preview-only factory method with mock data that doesn't persist to UserDefaults
+    static func preview(
+        url: String = "http://192.168.1.1:3001/metrics",
+        username: String = "preview-user",
+        password: String = "preview-pass",
+        refreshInterval: Int = 5
+    ) -> AppSettings {
+        let settings = AppSettings()
+        // Override with preview-specific values
+        settings.uptimeKumaURL = url
+        settings.uptimeKumaUsername = username
+        settings.uptimeKumaPassword = password
+        settings.refreshInterval = refreshInterval
+        return settings
+    }
+}
+#endif

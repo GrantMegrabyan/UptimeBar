@@ -15,7 +15,9 @@ struct GlanceaApp: App {
     init() {
         let settings = AppSettings()
         _settings = State(initialValue: settings)
-        _monitorManager = State(initialValue: MonitorManager(settings: settings))
+        _monitorManager = State(initialValue: MonitorManager(settings: settings) { settings in
+            UptimeKumaMetricsProvider(settings: settings)
+        })
     }
 
     var body: some Scene {

@@ -164,5 +164,5 @@ struct InfoRow: View {
 }
 
 #Preview {
-    SettingsView(settings: AppSettings(), onDismiss: {})
+    SettingsView(settings: AppSettings.preview(), onDismiss: {})
 }

@@ -8,7 +8,7 @@
 import Foundation
 import OSLog
 
-class UptimeKumaMetricsProvider {
+class UptimeKumaMetricsProvider: MetricsProvider {
     let logger = Logger(subsystem: "Glancea", category: "UptimeKumaMetricsProvider")
 
     private let settings: AppSettings

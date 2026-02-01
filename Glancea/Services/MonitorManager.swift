@@ -15,13 +15,16 @@ class MonitorManager {
     var lastUpdated: Date = .now
     var isRefreshing: Bool = false
     
-    private var provider: UptimeKumaMetricsProvider
+    private var provider: any MetricsProvider
     @ObservationIgnored private var updateTask: Task<Void, Never>?
-    private let settings: AppSettings
     
-    init(settings: AppSettings) {
+    private let settings: AppSettings
+    private let providerFactory: (AppSettings) -> any MetricsProvider
+    
+    init(settings: AppSettings, providerFactory: @escaping (AppSettings) -> any MetricsProvider) {
         self.settings = settings
-        self.provider = UptimeKumaMetricsProvider(settings: settings)
+        self.providerFactory = providerFactory
+        self.provider = providerFactory(settings)
         startUpdating()
     }
     
@@ -31,7 +34,7 @@ class MonitorManager {
     
     func restartUpdating() {
         updateTask?.cancel()
-        provider = UptimeKumaMetricsProvider(settings: settings)
+        provider = providerFactory(settings)
         startUpdating()
     }
     
@@ -107,9 +110,10 @@ class MonitorManager {
 @MainActor
 extension MonitorManager {
     static func preview(with monitors: [Monitor]) -> MonitorManager {
-        let settings = AppSettings()
-        let manager = MonitorManager(settings: settings)
-        manager.monitors = monitors
+        let settings = AppSettings.preview()
+        let manager = MonitorManager(settings: settings) { _ in
+            PreviewMetricsProvider(monitors: monitors)
+        }
         return manager
     }
     

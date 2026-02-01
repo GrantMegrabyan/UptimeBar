@@ -150,22 +150,22 @@ struct CollapsibleGroupHeader: View {
 }
 
 #Preview("All Green") {
-    @Previewable @State var settings = AppSettings()
+    @Previewable @State var settings = AppSettings.preview()
     @Previewable @State var manager = MonitorManager.preview(with: MonitorManager.sampleAllGreenMonitors)
-    
+
     MonitorsListView(monitorManager: manager, settings: settings)
 }
 
 #Preview("Mixed Status") {
-    @Previewable @State var settings = AppSettings()
+    @Previewable @State var settings = AppSettings.preview()
     @Previewable @State var manager = MonitorManager.preview(with: MonitorManager.sampleMixedStatusMonitors)
-    
+
     MonitorsListView(monitorManager: manager, settings: settings)
 }
 
 #Preview("Critical Status") {
-    @Previewable @State var settings = AppSettings()
+    @Previewable @State var settings = AppSettings.preview()
     @Previewable @State var manager = MonitorManager.preview(with: MonitorManager.sampleCriticalStatusMonitors)
-    
+
     MonitorsListView(monitorManager: manager, settings: settings)
 }
