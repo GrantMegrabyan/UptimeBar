@@ -67,7 +67,6 @@ enum UptimeKumaMetricsParser {
         logger.debug("Found \(partialByID.count) unique monitor IDs")
 
         // Build final Monitors; only include ones with at least name+url
-        // (you can relax this if you want partial entries).
         let monitors: [Monitor] = partialByID.values
             .compactMap { p in
                 guard let name = p.name, let url = p.url else { return nil }
