@@ -12,9 +12,13 @@ class UptimeKumaMetricsProvider: MetricsProvider {
     let logger = Logger(subsystem: "Glancea", category: "UptimeKumaMetricsProvider")
 
     private let settings: AppSettings
+    private let session: URLSession
 
     init(settings: AppSettings) {
         self.settings = settings
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 10
+        self.session = URLSession(configuration: config)
     }
 
     func getMonitors() async throws -> [Monitor] {
@@ -34,10 +38,24 @@ class UptimeKumaMetricsProvider: MetricsProvider {
             }
         }
 
+        return try await fetchWithRetry(request: request)
+    }
+
+    private func fetchWithRetry(request: URLRequest) async throws -> [Monitor] {
+        do {
+            return try await performFetch(request: request)
+        } catch let error as MonitorFetchError where error.isRetryable {
+            logger.info("Retrying after transient failure")
+            try? await Task.sleep(for: .seconds(2))
+            return try await performFetch(request: request)
+        }
+    }
+
+    private func performFetch(request: URLRequest) async throws -> [Monitor] {
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await session.data(for: request)
         } catch let urlError as URLError where urlError.code == .timedOut {
             logger.error("Request timed out")
             throw MonitorFetchError.timeout

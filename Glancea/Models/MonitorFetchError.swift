@@ -15,6 +15,15 @@ enum MonitorFetchError: Error {
     case timeout
     case invalidResponse
 
+    var isRetryable: Bool {
+        switch self {
+        case .networkError, .timeout, .serverError:
+            return true
+        case .invalidURL, .authenticationFailed, .invalidResponse:
+            return false
+        }
+    }
+
     var userMessage: String {
         switch self {
         case .invalidURL:
