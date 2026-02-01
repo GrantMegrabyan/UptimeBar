@@ -17,10 +17,10 @@ class UptimeKumaMetricsProvider: MetricsProvider {
         self.settings = settings
     }
 
-    func getMonitors() async -> [Monitor] {
+    func getMonitors() async throws -> [Monitor] {
         guard let url = URL(string: settings.uptimeKumaURL) else {
             logger.error("Invalid URL: \(self.settings.uptimeKumaURL)")
-            return []
+            throw MonitorFetchError.invalidURL
         }
 
         var request = URLRequest(url: url)
@@ -34,15 +34,37 @@ class UptimeKumaMetricsProvider: MetricsProvider {
             }
         }
 
+        let data: Data
+        let response: URLResponse
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let metricsText = String(data: data, encoding: .utf8) ?? ""
-            let monitors = UptimeKumaMetricsParser.parseMonitors(from: metricsText)
-            logger.debug("Parsed \(monitors.count) monitors")
-            return monitors
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch let urlError as URLError where urlError.code == .timedOut {
+            logger.error("Request timed out")
+            throw MonitorFetchError.timeout
         } catch {
-            logger.error("Failed to fetch uptime metrics: \(error.localizedDescription)")
-            return []
+            logger.error("Network error: \(error.localizedDescription)")
+            throw MonitorFetchError.networkError(underlying: error)
         }
+
+        if let httpResponse = response as? HTTPURLResponse {
+            switch httpResponse.statusCode {
+            case 200..<300:
+                break
+            case 401, 403:
+                logger.error("Authentication failed: \(httpResponse.statusCode)")
+                throw MonitorFetchError.authenticationFailed
+            default:
+                logger.error("Server error: \(httpResponse.statusCode)")
+                throw MonitorFetchError.serverError(statusCode: httpResponse.statusCode)
+            }
+        }
+
+        guard let metricsText = String(data: data, encoding: .utf8) else {
+            throw MonitorFetchError.invalidResponse
+        }
+
+        let monitors = UptimeKumaMetricsParser.parseMonitors(from: metricsText)
+        logger.debug("Parsed \(monitors.count) monitors")
+        return monitors
     }
 }

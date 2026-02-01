@@ -9,5 +9,5 @@ import Foundation
 
 /// Protocol defining the contract for fetching monitor metrics
 protocol MetricsProvider {
-    func getMonitors() async -> [Monitor]
+    func getMonitors() async throws -> [Monitor]
 }

@@ -51,7 +51,27 @@ struct MonitorsListView: View {
             Divider()
                 .padding(.horizontal, 8)
                 .padding(.bottom, 4)
-            
+
+            // Error banner
+            if let errorMessage = monitorManager.errorMessage {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.orange)
+                    Text(errorMessage)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                    Spacer()
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 6)
+                .background(.orange.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .padding(.horizontal, 8)
+                .padding(.bottom, 4)
+            }
+
             // Monitors list with smart grouping
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
@@ -166,6 +186,29 @@ struct CollapsibleGroupHeader: View {
 #Preview("Critical Status") {
     @Previewable @State var settings = AppSettings.preview()
     @Previewable @State var manager = MonitorManager.preview(with: MonitorManager.sampleCriticalStatusMonitors)
+
+    MonitorsListView(monitorManager: manager, settings: settings)
+}
+
+#Preview("Auth Error") {
+    @Previewable @State var settings = AppSettings.preview()
+    @Previewable @State var manager = MonitorManager.previewError(.authenticationFailed)
+
+    MonitorsListView(monitorManager: manager, settings: settings)
+}
+
+#Preview("Network Error") {
+    @Previewable @State var settings = AppSettings.preview()
+    @Previewable @State var manager = MonitorManager.previewError(
+        .networkError(underlying: URLError(.notConnectedToInternet))
+    )
+
+    MonitorsListView(monitorManager: manager, settings: settings)
+}
+
+#Preview("Timeout Error") {
+    @Previewable @State var settings = AppSettings.preview()
+    @Previewable @State var manager = MonitorManager.previewError(.timeout)
 
     MonitorsListView(monitorManager: manager, settings: settings)
 }

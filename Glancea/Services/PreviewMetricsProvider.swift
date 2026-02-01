@@ -16,8 +16,21 @@ class PreviewMetricsProvider: MetricsProvider {
         self.monitors = monitors
     }
 
-    func getMonitors() async -> [Monitor] {
+    func getMonitors() async throws -> [Monitor] {
         return monitors
+    }
+}
+
+/// Preview provider that always throws a given error
+class FailingMetricsProvider: MetricsProvider {
+    private let error: MonitorFetchError
+
+    init(error: MonitorFetchError) {
+        self.error = error
+    }
+
+    func getMonitors() async throws -> [Monitor] {
+        throw error
     }
 }
 #endif

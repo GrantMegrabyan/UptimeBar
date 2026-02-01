@@ -14,6 +14,7 @@ class MonitorManager {
     var monitors: [Monitor] = []
     var lastUpdated: Date = .now
     var isRefreshing: Bool = false
+    var errorMessage: String?
     
     private var provider: any MetricsProvider
     @ObservationIgnored private var updateTask: Task<Void, Never>?
@@ -53,7 +54,14 @@ class MonitorManager {
     
     private func updateMonitors() async {
         isRefreshing = true
-        monitors = await provider.getMonitors()
+        do {
+            monitors = try await provider.getMonitors()
+            errorMessage = nil
+        } catch let error as MonitorFetchError {
+            errorMessage = error.userMessage
+        } catch {
+            errorMessage = "Unexpected error: \(error.localizedDescription)"
+        }
         lastUpdated = .now
         isRefreshing = false
     }
@@ -113,6 +121,14 @@ extension MonitorManager {
         let settings = AppSettings.preview()
         let manager = MonitorManager(settings: settings) { _ in
             PreviewMetricsProvider(monitors: monitors)
+        }
+        return manager
+    }
+
+    static func previewError(_ error: MonitorFetchError) -> MonitorManager {
+        let settings = AppSettings.preview()
+        let manager = MonitorManager(settings: settings) { _ in
+            FailingMetricsProvider(error: error)
         }
         return manager
     }

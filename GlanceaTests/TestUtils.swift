@@ -10,5 +10,5 @@ import Foundation
 
 struct MockProvider: MetricsProvider {
     let monitors: [Monitor]
-    func getMonitors() async -> [Monitor] { monitors }
+    func getMonitors() async throws -> [Monitor] { monitors }
 }
