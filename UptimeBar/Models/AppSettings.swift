@@ -48,11 +48,8 @@ class AppSettings {
         !uptimeKumaURL.isEmpty
     }
 
-    /// Validates a URL string and returns an error message if invalid
-    /// - Parameter urlString: The URL string to validate
-    /// - Returns: An error message if invalid, or nil if valid or empty
-    static func validateURL(_ urlString: String) -> String? {
-        let trimmed = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+    var urlValidationError: String? {
+        let trimmed = uptimeKumaURL.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty { return nil }
         guard let url = URL(string: trimmed) else {
             return "Invalid URL format"
@@ -66,12 +63,9 @@ class AppSettings {
         return nil
     }
 
-    var urlValidationError: String? {
-        Self.validateURL(uptimeKumaURL)
-    }
-
     var isURLValid: Bool {
-        urlValidationError == nil
+        let trimmed = uptimeKumaURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty || urlValidationError == nil
     }
 
     func save() {

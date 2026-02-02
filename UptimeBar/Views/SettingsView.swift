@@ -13,27 +13,11 @@ struct SettingsView: View {
     @State private var testResult: TestConnectionResult?
     @State private var isTesting = false
 
-    // Local editable copy of settings
-    @State private var localURL: String = ""
-    @State private var localUsername: String = ""
-    @State private var localPassword: String = ""
-    @State private var localRefreshInterval: Int = 120
-    @State private var localShowUnhealthyCount: Bool = true
-
     enum TestConnectionResult {
         case success(Int)
         case failure(String)
     }
     
-    // Computed property for URL validation using local state
-    private var urlValidationError: String? {
-        AppSettings.validateURL(localURL)
-    }
-
-    private var isURLValid: Bool {
-        urlValidationError == nil
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
@@ -67,14 +51,14 @@ struct SettingsView: View {
                                     .font(.system(size: 12, weight: .medium))
                                     .foregroundStyle(.secondary)
                                 
-                                TextField("http://localhost:3001/metrics", text: $localURL)
+                                TextField("http://localhost:3001/metrics", text: $settings.uptimeKumaURL)
                                     .textFieldStyle(.roundedBorder)
                                     .font(.system(size: 12, design: .monospaced))
-                                    .onChange(of: localURL) {
+                                    .onChange(of: settings.uptimeKumaURL) {
                                         testResult = nil
                                     }
 
-                                if let error = urlValidationError {
+                                if let error = settings.urlValidationError {
                                     Text(error)
                                         .font(.system(size: 10))
                                         .foregroundStyle(.red)
@@ -87,8 +71,8 @@ struct SettingsView: View {
                                     Text("Username")
                                         .font(.system(size: 12, weight: .medium))
                                         .foregroundStyle(.secondary)
-
-                                    TextField("Username", text: $localUsername)
+                                    
+                                    TextField("Username", text: $settings.uptimeKumaUsername)
                                         .textFieldStyle(.roundedBorder)
                                         .font(.system(size: 12))
                                 }
@@ -98,7 +82,7 @@ struct SettingsView: View {
                                         .font(.system(size: 12, weight: .medium))
                                         .foregroundStyle(.secondary)
 
-                                    SecureField("Password", text: $localPassword)
+                                    SecureField("Password", text: $settings.uptimeKumaPassword)
                                         .textFieldStyle(.roundedBorder)
                                         .font(.system(size: 12))
                                 }
@@ -118,7 +102,7 @@ struct SettingsView: View {
                                     }
                                 }
                                 .controlSize(.small)
-                                .disabled(!isURLValid || localURL.isEmpty || isTesting)
+                                .disabled(!settings.isURLValid || settings.uptimeKumaURL.isEmpty || isTesting)
 
                                 if let result = testResult {
                                     switch result {
@@ -148,7 +132,7 @@ struct SettingsView: View {
                     SettingsSection(title: "General") {
                         VStack(alignment: .leading, spacing: 12) {
                             // Show unhealthy count toggle
-                            Toggle(isOn: $localShowUnhealthyCount) {
+                            Toggle(isOn: $settings.showUnhealthyCountInMenuBar) {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Show unhealthy monitor count")
                                         .font(.system(size: 12))
@@ -161,7 +145,7 @@ struct SettingsView: View {
 
                             // Refresh interval picker
                             VStack(alignment: .leading, spacing: 8) {
-                                Picker("Refresh Interval", selection: $localRefreshInterval) {
+                                Picker("Refresh Interval", selection: $settings.refreshInterval) {
                                     Text("30 seconds").tag(30)
                                     Text("1 minute").tag(60)
                                     Text("2 minutes").tag(120)
@@ -190,61 +174,33 @@ struct SettingsView: View {
             }
             
             Divider()
-
+            
             // Footer
             HStack {
                 Spacer()
-
-                Button("Cancel") {
-                    onDismiss()
-                }
-                .controlSize(.small)
-
-                Button("Save") {
-                    saveChanges()
+                
+                Button("Done") {
+                    settings.save()
                     onDismiss()
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
-                .disabled(!isURLValid)
+                .disabled(!settings.isURLValid)
             }
             .padding(12)
         }
         .frame(width: 320, height: 500)
         .background(Color(nsColor: .windowBackgroundColor))
-        .onAppear {
-            loadLocalState()
+        .onDisappear {
+            settings.save()
         }
-    }
-
-    private func loadLocalState() {
-        localURL = settings.uptimeKumaURL
-        localUsername = settings.uptimeKumaUsername
-        localPassword = settings.uptimeKumaPassword
-        localRefreshInterval = settings.refreshInterval
-        localShowUnhealthyCount = settings.showUnhealthyCountInMenuBar
-    }
-
-    private func saveChanges() {
-        settings.uptimeKumaURL = localURL
-        settings.uptimeKumaUsername = localUsername
-        settings.uptimeKumaPassword = localPassword
-        settings.refreshInterval = localRefreshInterval
-        settings.showUnhealthyCountInMenuBar = localShowUnhealthyCount
-        settings.save()
     }
 
     private func testConnection() {
         isTesting = true
         testResult = nil
         Task {
-            // Create a temporary settings object with current local values for testing
-            let tempSettings = AppSettings()
-            tempSettings.uptimeKumaURL = localURL
-            tempSettings.uptimeKumaUsername = localUsername
-            tempSettings.uptimeKumaPassword = localPassword
-
-            let provider = UptimeKumaMetricsProvider(settings: tempSettings)
+            let provider = UptimeKumaMetricsProvider(settings: settings)
             do {
                 let monitors = try await provider.getMonitors()
                 testResult = .success(monitors.count)
