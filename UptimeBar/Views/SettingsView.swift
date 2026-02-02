@@ -81,26 +81,27 @@ struct SettingsView: View {
                                 }
                             }
                             
-                            // Username
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Username")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundStyle(.secondary)
-                                
-                                TextField("Username", text: $localUsername)
-                                    .textFieldStyle(.roundedBorder)
-                                    .font(.system(size: 12))
-                            }
-                            
-                            // Password
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Password")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundStyle(.secondary)
-                                
-                                SecureField("Password", text: $localPassword)
-                                    .textFieldStyle(.roundedBorder)
-                                    .font(.system(size: 12))
+                            // Username and Password (side-by-side)
+                            HStack(spacing: 12) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Username")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundStyle(.secondary)
+
+                                    TextField("Username", text: $localUsername)
+                                        .textFieldStyle(.roundedBorder)
+                                        .font(.system(size: 12))
+                                }
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Password")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundStyle(.secondary)
+
+                                    SecureField("Password", text: $localPassword)
+                                        .textFieldStyle(.roundedBorder)
+                                        .font(.system(size: 12))
+                                }
                             }
 
                             // Test Connection
