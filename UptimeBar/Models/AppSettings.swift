@@ -83,7 +83,6 @@ class AppSettings {
     }
 }
 
-#if DEBUG
 @MainActor
 extension AppSettings {
     /// Preview-only factory method with mock data that doesn't persist to UserDefaults
@@ -114,4 +113,3 @@ extension AppSettings {
         return settings
     }
 }
-#endif

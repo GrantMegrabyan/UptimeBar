@@ -120,7 +120,6 @@ class MonitorManager {
     }
 }
 
-#if DEBUG
 @MainActor
 extension MonitorManager {
     static func preview(with monitors: [Monitor]) -> MonitorManager {
@@ -229,4 +228,3 @@ extension MonitorManager {
         self.unhealthyMonitors
     }
 }
-#endif

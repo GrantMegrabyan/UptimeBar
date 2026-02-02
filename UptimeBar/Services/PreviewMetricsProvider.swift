@@ -7,7 +7,6 @@
 
 import Foundation
 
-#if DEBUG
 /// Preview-only metrics provider that returns static monitor data
 class PreviewMetricsProvider: MetricsProvider {
     private let monitors: [Monitor]
@@ -33,4 +32,3 @@ class FailingMetricsProvider: MetricsProvider {
         throw error
     }
 }
-#endif
