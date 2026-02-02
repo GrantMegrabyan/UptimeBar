@@ -143,9 +143,10 @@ struct SettingsView: View {
                         }
                     }
                     
-                    // Display Settings
-                    SettingsSection(title: "Display") {
-                        VStack(alignment: .leading, spacing: 8) {
+                    // General Settings
+                    SettingsSection(title: "General") {
+                        VStack(alignment: .leading, spacing: 12) {
+                            // Show unhealthy count toggle
                             Toggle(isOn: $localShowUnhealthyCount) {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Show unhealthy monitor count")
@@ -156,25 +157,23 @@ struct SettingsView: View {
                                 }
                             }
                             .toggleStyle(.switch)
-                        }
-                    }
 
-                    // Refresh Settings
-                    SettingsSection(title: "Refresh Interval") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Picker("Refresh Interval", selection: $localRefreshInterval) {
-                                Text("30 seconds").tag(30)
-                                Text("1 minute").tag(60)
-                                Text("2 minutes").tag(120)
-                                Text("5 minutes").tag(300)
-                                Text("10 minutes").tag(600)
+                            // Refresh interval picker
+                            VStack(alignment: .leading, spacing: 8) {
+                                Picker("Refresh Interval", selection: $localRefreshInterval) {
+                                    Text("30 seconds").tag(30)
+                                    Text("1 minute").tag(60)
+                                    Text("2 minutes").tag(120)
+                                    Text("5 minutes").tag(300)
+                                    Text("10 minutes").tag(600)
+                                }
+                                .pickerStyle(.menu)
+                                .labelsHidden()
+
+                                Text("How often to automatically refresh monitor data")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(.secondary)
                             }
-                            .pickerStyle(.menu)
-                            .labelsHidden()
-
-                            Text("How often to automatically refresh monitor data")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
                         }
                     }
                     
