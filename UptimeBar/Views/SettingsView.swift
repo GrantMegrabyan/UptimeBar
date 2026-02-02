@@ -178,15 +178,15 @@ struct SettingsView: View {
                         }
                     }
                     
-                    // Info Section
-                    SettingsSection(title: "About") {
-                        VStack(alignment: .leading, spacing: 6) {
-                            InfoRow(label: "Version", value: "1.0.0")
-                            InfoRow(label: "Build", value: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1")
-                        }
-                    }
                 }
                 .padding(16)
+
+                // Compact version info footer
+                Text("UptimeBar v1.0.0 (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"))")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.tertiary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.bottom, 8)
             }
             
             Divider()
@@ -274,24 +274,6 @@ struct SettingsSection<Content: View>: View {
     }
 }
 
-struct InfoRow: View {
-    let label: String
-    let value: String
-    
-    var body: some View {
-        HStack {
-            Text(label)
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
-            
-            Spacer()
-            
-            Text(value)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.primary)
-        }
-    }
-}
 
 #Preview {
     SettingsView(settings: AppSettings.preview(), onDismiss: {})
