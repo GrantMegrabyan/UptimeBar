@@ -14,7 +14,8 @@ struct MonitorRowView: View {
     
     var body: some View {
         Button(action: {
-            if let url = URL(string: monitor.url) {
+            let serviceURL = URLTransformer.toServiceURL(monitor.url)
+            if let url = URL(string: serviceURL) {
                 NSWorkspace.shared.open(url)
             }
         }) {
