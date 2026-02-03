@@ -10,6 +10,7 @@ import AppKit
 
 struct MonitorRowView: View {
     let monitor: Monitor
+    let onOpen: () -> Void
     @State private var isHovered = false
     
     var body: some View {
@@ -17,6 +18,7 @@ struct MonitorRowView: View {
             let serviceURL = URLTransformer.toServiceURL(monitor.url)
             if let url = URL(string: serviceURL) {
                 NSWorkspace.shared.open(url)
+                onOpen()
             }
         }) {
             HStack(spacing: 10) {
@@ -198,7 +200,7 @@ struct ProgressBar: View {
     let monitors = MonitorManager.sampleMixedStatusMonitors
     VStack(alignment: .leading, spacing: 2) {
         ForEach(monitors, id: \.id) {
-            MonitorRowView(monitor: $0)
+            MonitorRowView(monitor: $0, onOpen: {})
         }
     }
     .padding(6)

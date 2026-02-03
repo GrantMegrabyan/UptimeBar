@@ -127,7 +127,9 @@ struct MonitorsListView: View {
                         )
                         if isIssuesSectionExpanded {
                             ForEach(issueMonitors, id: \.id) { monitor in
-                                MonitorRowView(monitor: monitor)
+                                MonitorRowView(monitor: monitor) {
+                                    isMenuPresented = false
+                                }
                             }
                         }
                     }
@@ -142,7 +144,9 @@ struct MonitorsListView: View {
                         .padding(.top, issueMonitors.isEmpty ? 0 : 8)
                         if isHealthySectionExpanded {
                             ForEach(healthyMonitors, id: \.id) { monitor in
-                                MonitorRowView(monitor: monitor)
+                                MonitorRowView(monitor: monitor) {
+                                    isMenuPresented = false
+                                }
                             }
                         }
                     }
