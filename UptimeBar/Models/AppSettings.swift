@@ -16,6 +16,8 @@ class AppSettings {
     var uptimeKumaPassword: String
     var refreshInterval: Int
     var showUnhealthyCountInMenuBar: Bool
+    var statusPageGroupingEnabled: Bool
+    var statusPageSlugs: [String]
 
     init() {
         self.uptimeKumaURL = UserDefaults.standard.string(forKey: "uptimeKumaURL") ?? ""
@@ -33,6 +35,15 @@ class AppSettings {
         } else {
             self.showUnhealthyCountInMenuBar = UserDefaults.standard.bool(forKey: "showUnhealthyCountInMenuBar")
         }
+
+        if UserDefaults.standard.object(forKey: "statusPageGroupingEnabled") == nil {
+            self.statusPageGroupingEnabled = false
+        } else {
+            self.statusPageGroupingEnabled = UserDefaults.standard.bool(forKey: "statusPageGroupingEnabled")
+        }
+
+        let storedSlugs = UserDefaults.standard.stringArray(forKey: "statusPageSlugs") ?? []
+        self.statusPageSlugs = Self.normalizeStatusPageSlugs(storedSlugs)
     }
 
     /// Valid refresh interval presets in seconds
@@ -43,6 +54,27 @@ class AppSettings {
         // Find the closest valid interval
         let closest = validRefreshIntervals.min(by: { abs($0 - interval) < abs($1 - interval) })
         return closest ?? 120  // Default to 2 minutes if something goes wrong
+    }
+
+    static let defaultStatusPageSlug = "default"
+
+    var statusPageSlugsWithDefault: [String] {
+        statusPageSlugs + [Self.defaultStatusPageSlug]
+    }
+
+    private static func normalizeStatusPageSlugs(_ slugs: [String]) -> [String] {
+        var seen: Set<String> = []
+        var normalized: [String] = []
+        for slug in slugs {
+            let trimmed = slug.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { continue }
+            guard trimmed.lowercased() != defaultStatusPageSlug else { continue }
+            let key = trimmed.lowercased()
+            if seen.contains(key) { continue }
+            seen.insert(key)
+            normalized.append(trimmed)
+        }
+        return normalized
     }
 
     var isConfigured: Bool {
@@ -75,6 +107,8 @@ class AppSettings {
         KeychainStore.setUptimeKumaPassword(uptimeKumaPassword)
         UserDefaults.standard.set(refreshInterval, forKey: "refreshInterval")
         UserDefaults.standard.set(showUnhealthyCountInMenuBar, forKey: "showUnhealthyCountInMenuBar")
+        UserDefaults.standard.set(statusPageGroupingEnabled, forKey: "statusPageGroupingEnabled")
+        UserDefaults.standard.set(statusPageSlugs, forKey: "statusPageSlugs")
     }
 }
 
@@ -86,7 +120,9 @@ extension AppSettings {
         username: String = "preview-user",
         password: String = "preview-pass",
         refreshInterval: Int = 5,
-        showUnhealthyCountInMenuBar: Bool = true
+        showUnhealthyCountInMenuBar: Bool = true,
+        statusPageGroupingEnabled: Bool = false,
+        statusPageSlugs: [String] = []
     ) -> AppSettings {
         let settings = AppSettings()
         // Override with preview-specific values
@@ -95,6 +131,8 @@ extension AppSettings {
         settings.uptimeKumaPassword = password
         settings.refreshInterval = refreshInterval
         settings.showUnhealthyCountInMenuBar = showUnhealthyCountInMenuBar
+        settings.statusPageGroupingEnabled = statusPageGroupingEnabled
+        settings.statusPageSlugs = statusPageSlugs
         return settings
     }
     
@@ -105,6 +143,8 @@ extension AppSettings {
         settings.uptimeKumaUsername = ""
         settings.uptimeKumaPassword = ""
         settings.refreshInterval = 0
+        settings.statusPageGroupingEnabled = false
+        settings.statusPageSlugs = []
         return settings
     }
 }

@@ -16,6 +16,7 @@ class MonitorManager {
     var isRefreshing: Bool = false
     var errorMessage: String?
     var needsSetup: Bool = false
+    var statusPageSections: [StatusPageSection] = []
 
     private var provider: any MetricsProvider
     @ObservationIgnored private var updateTask: Task<Void, Never>?
@@ -61,7 +62,13 @@ class MonitorManager {
         needsSetup = false
         isRefreshing = true
         do {
-            monitors = try await provider.getMonitors()
+            let fetchedMonitors = try await provider.getMonitors()
+            monitors = fetchedMonitors
+            if settings.statusPageGroupingEnabled {
+                statusPageSections = await buildStatusPageSections(from: fetchedMonitors)
+            } else {
+                statusPageSections = []
+            }
             errorMessage = nil
         } catch let error as MonitorFetchError {
             errorMessage = error.userMessage
@@ -70,6 +77,56 @@ class MonitorManager {
         }
         lastUpdated = .now
         isRefreshing = false
+    }
+
+    private func buildStatusPageSections(from monitors: [Monitor]) async -> [StatusPageSection] {
+        let slugs = settings.statusPageSlugs
+        let statusPageProvider = UptimeKumaStatusPageProvider(settings: settings)
+        let summaries = await statusPageProvider.fetchStatusPages(slugs: slugs)
+        let summaryBySlug = Dictionary(uniqueKeysWithValues: summaries.map { ($0.slug.lowercased(), $0) })
+
+        let monitorsByID = Dictionary(uniqueKeysWithValues: monitors.map { ($0.id, $0) })
+        var assignedMonitorIDs: Set<Int> = []
+
+        var sections: [StatusPageSection] = []
+        for slug in slugs {
+            let summary = summaryBySlug[slug.lowercased()]
+            let groups = summary?.groups.sorted(by: { lhs, rhs in
+                if lhs.weight != rhs.weight { return lhs.weight < rhs.weight }
+                if lhs.name != rhs.name { return lhs.name < rhs.name }
+                return lhs.id < rhs.id
+            }) ?? []
+            let groupModels = groups.map { group in
+                let groupMonitors = group.monitorIDs.compactMap { monitorsByID[$0] }
+                assignedMonitorIDs.formUnion(group.monitorIDs)
+                return StatusPageMonitorGroup(
+                    id: group.id,
+                    title: group.name,
+                    weight: group.weight,
+                    monitors: groupMonitors
+                )
+            }
+            sections.append(StatusPageSection(
+                id: slug,
+                title: slug,
+                groups: groupModels,
+                monitors: [],
+                isDefault: false
+            ))
+        }
+
+        let defaultMonitors = monitors
+            .filter { !assignedMonitorIDs.contains($0.id) }
+            .sorted { $0.id < $1.id }
+        sections.append(StatusPageSection(
+            id: AppSettings.defaultStatusPageSlug,
+            title: AppSettings.defaultStatusPageSlug,
+            groups: [],
+            monitors: defaultMonitors,
+            isDefault: true
+        ))
+
+        return sections
     }
     
     var aggregateStatus: AggregateStatus {

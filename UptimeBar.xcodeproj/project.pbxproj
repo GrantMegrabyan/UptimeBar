@@ -612,14 +612,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		93A1B2C3D4E5F6A7B8C9D0E1 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.2.2;
-			};
-		};
 		93719E232F2F578000152459 /* XCRemoteSwiftPackageReference "MenuBarExtraAccess" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/orchetect/MenuBarExtraAccess";
@@ -628,18 +620,26 @@
 				minimumVersion = 1.2.2;
 			};
 		};
+		93A1B2C3D4E5F6A7B8C9D0E1 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.2.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		93A1B2C3D4E5F6A7B8C9D0E2 /* KeychainAccess */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 93A1B2C3D4E5F6A7B8C9D0E1 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
-			productName = KeychainAccess;
-		};
 		93719E242F2F578000152459 /* MenuBarExtraAccess */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 93719E232F2F578000152459 /* XCRemoteSwiftPackageReference "MenuBarExtraAccess" */;
 			productName = MenuBarExtraAccess;
+		};
+		93A1B2C3D4E5F6A7B8C9D0E2 /* KeychainAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 93A1B2C3D4E5F6A7B8C9D0E1 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			productName = KeychainAccess;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

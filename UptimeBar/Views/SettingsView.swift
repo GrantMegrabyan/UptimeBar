@@ -12,6 +12,7 @@ struct SettingsView: View {
     var onDismiss: () -> Void = {}
     @State private var testResult: TestConnectionResult?
     @State private var isTesting = false
+    @State private var newStatusPageSlug = ""
 
     enum TestConnectionResult {
         case success(Int)
@@ -159,6 +160,100 @@ struct SettingsView: View {
                                     .font(.system(size: 11))
                                     .foregroundStyle(.secondary)
                             }
+
+                            Toggle(isOn: $settings.statusPageGroupingEnabled) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Enable status page grouping")
+                                        .font(.system(size: 12))
+                                    Text("Group monitors using Uptime Kuma status pages")
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .toggleStyle(.switch)
+                        }
+                    }
+
+                    if settings.statusPageGroupingEnabled {
+                        SettingsSection(title: "Status Pages") {
+                            VStack(alignment: .leading, spacing: 12) {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("Add status page slug")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundStyle(.secondary)
+
+                                    HStack(spacing: 8) {
+                                        TextField("media", text: $newStatusPageSlug)
+                                            .textFieldStyle(.roundedBorder)
+                                            .font(.system(size: 12, design: .monospaced))
+                                            .onSubmit {
+                                                addStatusPageSlug()
+                                            }
+
+                                        Button("Add") {
+                                            addStatusPageSlug()
+                                        }
+                                        .controlSize(.small)
+                                        .disabled(!canAddStatusPageSlug)
+                                    }
+                                    Text("Use the slug from your Uptime Kuma status page URL.")
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(.secondary)
+                                }
+
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("Configured slugs")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundStyle(.secondary)
+
+                                    if settings.statusPageSlugs.isEmpty {
+                                        Text("No custom slugs yet.")
+                                            .font(.system(size: 11))
+                                            .foregroundStyle(.secondary)
+                                    }
+
+                                    ForEach(Array(settings.statusPageSlugs.enumerated()), id: \.element) { index, slug in
+                                        HStack(spacing: 8) {
+                                            Text(slug)
+                                                .font(.system(size: 12, design: .monospaced))
+                                            Spacer()
+                                            Button {
+                                                moveStatusPageSlug(from: index, offset: -1)
+                                            } label: {
+                                                Image(systemName: "arrow.up")
+                                            }
+                                            .buttonStyle(.borderless)
+                                            .disabled(index == 0)
+
+                                            Button {
+                                                moveStatusPageSlug(from: index, offset: 1)
+                                            } label: {
+                                                Image(systemName: "arrow.down")
+                                            }
+                                            .buttonStyle(.borderless)
+                                            .disabled(index == settings.statusPageSlugs.count - 1)
+
+                                            Button {
+                                                removeStatusPageSlug(at: index)
+                                            } label: {
+                                                Image(systemName: "trash")
+                                            }
+                                            .buttonStyle(.borderless)
+                                        }
+                                        .padding(.vertical, 2)
+                                    }
+
+                                    HStack(spacing: 8) {
+                                        Text(AppSettings.defaultStatusPageSlug)
+                                            .font(.system(size: 12, design: .monospaced))
+                                        Text("Includes monitors not listed above.")
+                                            .font(.system(size: 11))
+                                            .foregroundStyle(.secondary)
+                                        Spacer()
+                                    }
+                                    .padding(.vertical, 2)
+                                }
+                            }
                         }
                     }
                     
@@ -211,6 +306,40 @@ struct SettingsView: View {
             }
             isTesting = false
         }
+    }
+
+    private var normalizedStatusPageSlug: String {
+        newStatusPageSlug.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var canAddStatusPageSlug: Bool {
+        let slug = normalizedStatusPageSlug
+        guard !slug.isEmpty else { return false }
+        guard slug.lowercased() != AppSettings.defaultStatusPageSlug else { return false }
+        return !settings.statusPageSlugs.contains { $0.caseInsensitiveCompare(slug) == .orderedSame }
+    }
+
+    private func addStatusPageSlug() {
+        let slug = normalizedStatusPageSlug
+        guard !slug.isEmpty else { return }
+        guard slug.lowercased() != AppSettings.defaultStatusPageSlug else { return }
+        guard !settings.statusPageSlugs.contains(where: { $0.caseInsensitiveCompare(slug) == .orderedSame }) else { return }
+        settings.statusPageSlugs.append(slug)
+        newStatusPageSlug = ""
+    }
+
+    private func removeStatusPageSlug(at index: Int) {
+        guard settings.statusPageSlugs.indices.contains(index) else { return }
+        settings.statusPageSlugs.remove(at: index)
+    }
+
+    private func moveStatusPageSlug(from index: Int, offset: Int) {
+        let newIndex = index + offset
+        guard settings.statusPageSlugs.indices.contains(index),
+              settings.statusPageSlugs.indices.contains(newIndex)
+        else { return }
+        let slug = settings.statusPageSlugs.remove(at: index)
+        settings.statusPageSlugs.insert(slug, at: newIndex)
     }
 }
 

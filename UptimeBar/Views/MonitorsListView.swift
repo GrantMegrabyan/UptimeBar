@@ -15,6 +15,7 @@ struct MonitorsListView: View {
     @State private var isIssuesSectionExpanded = true
     @State private var isHealthySectionExpanded = true
     @State private var isSettingsPresented = false
+    @State private var statusPageSectionExpanded: [String: Bool] = [:]
     @FocusState private var isFocused: Bool
 
     var body: some View {
@@ -116,43 +117,75 @@ struct MonitorsListView: View {
 
             // Monitors list with smart grouping
             if !monitorManager.needsSetup {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Issues section
-                    if !issueMonitors.isEmpty {
-                        CollapsibleGroupHeader(
-                            title: "ISSUES",
-                            count: issueMonitors.count,
-                            isExpanded: $isIssuesSectionExpanded
-                        )
-                        if isIssuesSectionExpanded {
-                            ForEach(issueMonitors, id: \.id) { monitor in
-                                MonitorRowView(monitor: monitor) {
-                                    isMenuPresented = false
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if settings.statusPageGroupingEnabled {
+                            ForEach(statusPageSections) { section in
+                                let isExpanded = Binding(
+                                    get: { statusPageSectionExpanded[section.id] ?? true },
+                                    set: { statusPageSectionExpanded[section.id] = $0 }
+                                )
+                                CollapsibleGroupHeader(
+                                    title: section.title,
+                                    count: section.groups.isEmpty ? section.monitors.count : section.groups.reduce(0) { $0 + $1.monitors.count },
+                                    isExpanded: isExpanded
+                                )
+                                if isExpanded.wrappedValue {
+                                    if section.groups.isEmpty {
+                                        ForEach(section.monitors, id: \.id) { monitor in
+                                            MonitorRowView(monitor: monitor) {
+                                                isMenuPresented = false
+                                            }
+                                        }
+                                    } else {
+                                        ForEach(section.groups) { group in
+                                            StatusPageGroupHeader(title: group.title, count: group.monitors.count)
+                                            ForEach(group.monitors, id: \.id) { monitor in
+                                                MonitorRowView(monitor: monitor) {
+                                                    isMenuPresented = false
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    }
-                    
-                    // All good section
-                    if !healthyMonitors.isEmpty {
-                        CollapsibleGroupHeader(
-                            title: "ALL GOOD",
-                            count: healthyMonitors.count,
-                            isExpanded: $isHealthySectionExpanded
-                        )
-                        .padding(.top, issueMonitors.isEmpty ? 0 : 8)
-                        if isHealthySectionExpanded {
-                            ForEach(healthyMonitors, id: \.id) { monitor in
-                                MonitorRowView(monitor: monitor) {
-                                    isMenuPresented = false
+                        } else {
+                            // Issues section
+                            if !issueMonitors.isEmpty {
+                                CollapsibleGroupHeader(
+                                    title: "ISSUES",
+                                    count: issueMonitors.count,
+                                    isExpanded: $isIssuesSectionExpanded
+                                )
+                                if isIssuesSectionExpanded {
+                                    ForEach(issueMonitors, id: \.id) { monitor in
+                                        MonitorRowView(monitor: monitor) {
+                                            isMenuPresented = false
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // All good section
+                            if !healthyMonitors.isEmpty {
+                                CollapsibleGroupHeader(
+                                    title: "ALL GOOD",
+                                    count: healthyMonitors.count,
+                                    isExpanded: $isHealthySectionExpanded
+                                )
+                                .padding(.top, issueMonitors.isEmpty ? 0 : 8)
+                                if isHealthySectionExpanded {
+                                    ForEach(healthyMonitors, id: \.id) { monitor in
+                                        MonitorRowView(monitor: monitor) {
+                                            isMenuPresented = false
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
-            .frame(maxHeight: 600)
+                .frame(maxHeight: 600)
             }
 
             // Footer
@@ -184,6 +217,10 @@ struct MonitorsListView: View {
     private var healthyMonitors: [Monitor] {
         monitors.filter { $0.status == .up }.sorted { $0.id < $1.id }
     }
+
+    private var statusPageSections: [StatusPageSection] {
+        monitorManager.statusPageSections
+    }
 }
 
 struct CollapsibleGroupHeader: View {
@@ -214,6 +251,23 @@ struct CollapsibleGroupHeader: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+}
+
+struct StatusPageGroupHeader: View {
+    let title: String
+    let count: Int
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text("\(title) (\(count))")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .padding(.horizontal, 22)
+        .padding(.top, 4)
+        .padding(.bottom, 2)
     }
 }
 
