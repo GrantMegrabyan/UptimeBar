@@ -20,7 +20,8 @@ class AppSettings {
     init() {
         self.uptimeKumaURL = UserDefaults.standard.string(forKey: "uptimeKumaURL") ?? ""
         self.uptimeKumaUsername = UserDefaults.standard.string(forKey: "uptimeKumaUsername") ?? ""
-        self.uptimeKumaPassword = UserDefaults.standard.string(forKey: "uptimeKumaPassword") ?? ""
+        // Password is stored in Keychain.
+        self.uptimeKumaPassword = KeychainStore.getUptimeKumaPassword()
 
         // Normalize refresh interval to one of the valid preset values
         let savedInterval = UserDefaults.standard.integer(forKey: "refreshInterval") == 0 ? 120 : UserDefaults.standard.integer(forKey: "refreshInterval")
@@ -71,7 +72,7 @@ class AppSettings {
     func save() {
         UserDefaults.standard.set(uptimeKumaURL, forKey: "uptimeKumaURL")
         UserDefaults.standard.set(uptimeKumaUsername, forKey: "uptimeKumaUsername")
-        UserDefaults.standard.set(uptimeKumaPassword, forKey: "uptimeKumaPassword")
+        KeychainStore.setUptimeKumaPassword(uptimeKumaPassword)
         UserDefaults.standard.set(refreshInterval, forKey: "refreshInterval")
         UserDefaults.standard.set(showUnhealthyCountInMenuBar, forKey: "showUnhealthyCountInMenuBar")
     }
