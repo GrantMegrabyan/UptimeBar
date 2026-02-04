@@ -15,7 +15,6 @@ struct MonitorsListView: View {
     @State private var isIssuesSectionExpanded = true
     @State private var isHealthySectionExpanded = true
     @State private var isSettingsPresented = false
-    @State private var statusPageSectionExpanded: [String: Bool] = [:]
     @State private var statusFilter: StatusFilter = .all
     @FocusState private var isFocused: Bool
 
@@ -130,19 +129,11 @@ struct MonitorsListView: View {
                                 if filteredSection.monitors.isEmpty && filteredSection.groups.isEmpty {
                                     EmptyView()
                                 } else {
-                                let isExpanded = Binding(
-                                    get: { statusPageSectionExpanded[filteredSection.id] ?? true },
-                                    set: { statusPageSectionExpanded[filteredSection.id] = $0 }
-                                )
-                                CollapsibleGroupHeader(
-                                    title: filteredSection.title,
-                                    count: filteredSection.groups.isEmpty
-                                        ? filteredSection.monitors.count
-                                        : filteredSection.groups.reduce(0) { $0 + $1.monitors.count },
-                                    isExpanded: isExpanded
-                                )
-                                if isExpanded.wrappedValue {
                                     if filteredSection.groups.isEmpty {
+                                        StatusPageCombinedHeader(
+                                            title: filteredSection.title,
+                                            count: filteredSection.monitors.count
+                                        )
                                         ForEach(filteredSection.monitors, id: \.id) { monitor in
                                             MonitorRowView(monitor: monitor) {
                                                 isMenuPresented = false
@@ -150,7 +141,10 @@ struct MonitorsListView: View {
                                         }
                                     } else {
                                         ForEach(filteredSection.groups) { group in
-                                            StatusPageGroupHeader(title: group.title, count: group.monitors.count)
+                                            StatusPageCombinedHeader(
+                                                title: "\(filteredSection.title) // \(group.title)",
+                                                count: group.monitors.count
+                                            )
                                             ForEach(group.monitors, id: \.id) { monitor in
                                                 MonitorRowView(monitor: monitor) {
                                                     isMenuPresented = false
@@ -158,7 +152,6 @@ struct MonitorsListView: View {
                                             }
                                         }
                                     }
-                                }
                                 }
                             }
                         } else {
@@ -302,20 +295,25 @@ struct CollapsibleGroupHeader: View {
     }
 }
 
-struct StatusPageGroupHeader: View {
+struct StatusPageCombinedHeader: View {
     let title: String
     let count: Int
 
     var body: some View {
-        HStack(spacing: 4) {
-            Text("\(title) (\(count))")
-                .font(.system(size: 9, weight: .semibold))
+        HStack(spacing: 8) {
+            Text(title)
+                .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(.secondary)
-            Spacer()
+            Text("(\(count))")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.tertiary)
+            Divider()
+                .frame(height: 1)
+                .background(Color.secondary.opacity(0.25))
         }
-        .padding(.horizontal, 22)
-        .padding(.top, 4)
-        .padding(.bottom, 2)
+        .padding(.horizontal, 12)
+        .padding(.top, 6)
+        .padding(.bottom, 4)
     }
 }
 
