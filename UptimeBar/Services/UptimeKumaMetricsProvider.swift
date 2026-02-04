@@ -22,8 +22,8 @@ class UptimeKumaMetricsProvider: MetricsProvider {
     }
 
     func getMonitors() async throws -> [Monitor] {
-        guard let url = URL(string: settings.uptimeKumaURL) else {
-            logger.error("Invalid URL: \(self.settings.uptimeKumaURL)")
+        guard let url = settings.metricsURL else {
+            logger.error("Invalid URL: \(self.settings.normalizedBaseURL)")
             throw MonitorFetchError.invalidURL
         }
 

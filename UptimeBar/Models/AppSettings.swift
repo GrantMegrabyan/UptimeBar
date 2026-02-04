@@ -11,7 +11,7 @@ import SwiftUI
 @MainActor
 @Observable
 class AppSettings {
-    var uptimeKumaURL: String
+    var uptimeKumaBaseURL: String
     var uptimeKumaUsername: String
     var uptimeKumaPassword: String
     var refreshInterval: Int
@@ -20,7 +20,12 @@ class AppSettings {
     var statusPageSlugs: [String]
 
     init() {
-        self.uptimeKumaURL = UserDefaults.standard.string(forKey: "uptimeKumaURL") ?? ""
+        if let storedBaseURL = UserDefaults.standard.string(forKey: "uptimeKumaBaseURL") {
+            self.uptimeKumaBaseURL = Self.normalizeBaseURLString(storedBaseURL)
+        } else {
+            let legacyMetricsURL = UserDefaults.standard.string(forKey: "uptimeKumaURL") ?? ""
+            self.uptimeKumaBaseURL = Self.normalizeBaseURLString(legacyMetricsURL)
+        }
         self.uptimeKumaUsername = UserDefaults.standard.string(forKey: "uptimeKumaUsername") ?? ""
         // Password is stored in Keychain.
         self.uptimeKumaPassword = KeychainStore.getUptimeKumaPassword()
@@ -78,11 +83,11 @@ class AppSettings {
     }
 
     var isConfigured: Bool {
-        !uptimeKumaURL.isEmpty
+        !normalizedBaseURL.isEmpty
     }
 
     var urlValidationError: String? {
-        let trimmed = uptimeKumaURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = normalizedBaseURL
         if trimmed.isEmpty { return nil }
         guard let url = URL(string: trimmed) else {
             return "Invalid URL format"
@@ -93,16 +98,61 @@ class AppSettings {
         guard url.host != nil else {
             return "URL must include a hostname"
         }
+        if url.path == "/metrics" || url.path.hasSuffix("/metrics") {
+            return "Base URL should not include /metrics"
+        }
         return nil
     }
 
     var isURLValid: Bool {
-        let trimmed = uptimeKumaURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = normalizedBaseURL
         return trimmed.isEmpty || urlValidationError == nil
     }
 
+    var normalizedBaseURL: String {
+        Self.normalizeBaseURLString(uptimeKumaBaseURL)
+    }
+
+    var metricsURLString: String? {
+        let base = normalizedBaseURL
+        guard !base.isEmpty else { return nil }
+        return "\(base)/metrics"
+    }
+
+    var statusPageBaseURLString: String? {
+        let base = normalizedBaseURL
+        guard !base.isEmpty else { return nil }
+        return "\(base)/api/status-page"
+    }
+
+    var metricsURL: URL? {
+        guard let urlString = metricsURLString else { return nil }
+        return URL(string: urlString)
+    }
+
+    var statusPageBaseURL: URL? {
+        guard let urlString = statusPageBaseURLString else { return nil }
+        return URL(string: urlString)
+    }
+
+    private static func normalizeBaseURLString(_ input: String) -> String {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "" }
+
+        var base = trimmed
+        if base.hasSuffix("/") {
+            base = String(base.dropLast())
+        }
+
+        return base
+    }
+
     func save() {
-        UserDefaults.standard.set(uptimeKumaURL, forKey: "uptimeKumaURL")
+        let base = normalizedBaseURL
+        UserDefaults.standard.set(base, forKey: "uptimeKumaBaseURL")
+        if let metricsURLString {
+            UserDefaults.standard.set(metricsURLString, forKey: "uptimeKumaURL")
+        }
         UserDefaults.standard.set(uptimeKumaUsername, forKey: "uptimeKumaUsername")
         KeychainStore.setUptimeKumaPassword(uptimeKumaPassword)
         UserDefaults.standard.set(refreshInterval, forKey: "refreshInterval")
@@ -116,7 +166,7 @@ class AppSettings {
 extension AppSettings {
     /// Preview-only factory method with mock data that doesn't persist to UserDefaults
     static func preview(
-        url: String = "http://192.168.1.1:3001/metrics",
+        url: String = "http://192.168.1.1:3001",
         username: String = "preview-user",
         password: String = "preview-pass",
         refreshInterval: Int = 5,
@@ -126,7 +176,7 @@ extension AppSettings {
     ) -> AppSettings {
         let settings = AppSettings()
         // Override with preview-specific values
-        settings.uptimeKumaURL = url
+        settings.uptimeKumaBaseURL = url
         settings.uptimeKumaUsername = username
         settings.uptimeKumaPassword = password
         settings.refreshInterval = refreshInterval
@@ -139,7 +189,7 @@ extension AppSettings {
     static func previewEmpty() -> AppSettings {
         let settings = AppSettings()
         // Override with preview-specific values
-        settings.uptimeKumaURL = ""
+        settings.uptimeKumaBaseURL = ""
         settings.uptimeKumaUsername = ""
         settings.uptimeKumaPassword = ""
         settings.refreshInterval = 0

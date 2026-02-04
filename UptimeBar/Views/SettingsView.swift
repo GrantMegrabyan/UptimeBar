@@ -48,14 +48,14 @@ struct SettingsView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             // URL
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Metrics URL")
+                                Text("Base URL")
                                     .font(.system(size: 12, weight: .medium))
                                     .foregroundStyle(.secondary)
                                 
-                                TextField("http://localhost:3001/metrics", text: $settings.uptimeKumaURL)
+                                TextField("http://localhost:3001", text: $settings.uptimeKumaBaseURL)
                                     .textFieldStyle(.roundedBorder)
                                     .font(.system(size: 12, design: .monospaced))
-                                    .onChange(of: settings.uptimeKumaURL) {
+                                    .onChange(of: settings.uptimeKumaBaseURL) {
                                         testResult = nil
                                     }
 
@@ -103,7 +103,7 @@ struct SettingsView: View {
                                     }
                                 }
                                 .controlSize(.small)
-                                .disabled(!settings.isURLValid || settings.uptimeKumaURL.isEmpty || isTesting)
+                                .disabled(!settings.isURLValid || settings.normalizedBaseURL.isEmpty || isTesting)
 
                                 if let result = testResult {
                                     switch result {

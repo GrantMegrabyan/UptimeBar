@@ -108,14 +108,8 @@ class UptimeKumaStatusPageProvider {
     }
 
     private func buildStatusPageURL(for slug: String) -> URL? {
-        guard let metricsURL = URL(string: settings.uptimeKumaURL) else { return nil }
-        let baseURL: URL
-        if metricsURL.lastPathComponent == "metrics" {
-            baseURL = metricsURL.deletingLastPathComponent()
-        } else {
-            baseURL = metricsURL
-        }
-        return baseURL.appendingPathComponent("api/status-page").appendingPathComponent(slug)
+        guard let baseURL = settings.statusPageBaseURL else { return nil }
+        return baseURL.appendingPathComponent(slug)
     }
 
     private func addBasicAuth(to request: inout URLRequest) {
