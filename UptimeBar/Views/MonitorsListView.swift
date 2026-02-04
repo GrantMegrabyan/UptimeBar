@@ -150,36 +150,9 @@ struct MonitorsListView: View {
                                 }
                             }
                         } else {
-                            // Issues section
-                            if !issueMonitors.isEmpty {
-                                CollapsibleGroupHeader(
-                                    title: "ISSUES",
-                                    count: issueMonitors.count,
-                                    isExpanded: $isIssuesSectionExpanded
-                                )
-                                if isIssuesSectionExpanded {
-                                    ForEach(issueMonitors, id: \.id) { monitor in
-                                        MonitorRowView(monitor: monitor) {
-                                            isMenuPresented = false
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            // All good section
-                            if !healthyMonitors.isEmpty {
-                                CollapsibleGroupHeader(
-                                    title: "ALL GOOD",
-                                    count: healthyMonitors.count,
-                                    isExpanded: $isHealthySectionExpanded
-                                )
-                                .padding(.top, issueMonitors.isEmpty ? 0 : 8)
-                                if isHealthySectionExpanded {
-                                    ForEach(healthyMonitors, id: \.id) { monitor in
-                                        MonitorRowView(monitor: monitor) {
-                                            isMenuPresented = false
-                                        }
-                                    }
+                            ForEach(sortedMonitors, id: \.id) { monitor in
+                                MonitorRowView(monitor: monitor) {
+                                    isMenuPresented = false
                                 }
                             }
                         }
@@ -216,6 +189,10 @@ struct MonitorsListView: View {
     
     private var healthyMonitors: [Monitor] {
         monitors.filter { $0.status == .up }.sorted { $0.id < $1.id }
+    }
+
+    private var sortedMonitors: [Monitor] {
+        monitors.sorted { $0.id < $1.id }
     }
 
     private var statusPageSections: [StatusPageSection] {
