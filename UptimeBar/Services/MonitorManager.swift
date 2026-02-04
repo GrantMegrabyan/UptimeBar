@@ -84,11 +84,7 @@ class MonitorManager {
         guard let statusPageBaseURL = settings.statusPageBaseURL else {
             return []
         }
-        let statusPageProvider = UptimeKumaStatusPageProvider(
-            baseURL: statusPageBaseURL,
-            username: settings.uptimeKumaUsername,
-            password: settings.uptimeKumaPassword
-        )
+        let statusPageProvider = UptimeKumaStatusPageProvider(baseURL: statusPageBaseURL)
         let summaries = await statusPageProvider.fetchStatusPages(slugs: slugs)
         let summaryBySlug = Dictionary(uniqueKeysWithValues: summaries.map { ($0.slug.lowercased(), $0) })
 

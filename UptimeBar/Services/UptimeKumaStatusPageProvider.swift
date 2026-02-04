@@ -23,14 +23,10 @@ struct StatusPageGroupSummary: Sendable {
 class UptimeKumaStatusPageProvider {
     private let logger = Logger(subsystem: "UptimeBar", category: "UptimeKumaStatusPageProvider")
     private let baseURL: URL
-    private let username: String
-    private let password: String
     private let session: URLSession
 
-    init(baseURL: URL, username: String, password: String) {
+    init(baseURL: URL) {
         self.baseURL = baseURL
-        self.username = username
-        self.password = password
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 10
         self.session = URLSession(configuration: config)
@@ -71,7 +67,6 @@ class UptimeKumaStatusPageProvider {
         }
 
         var request = URLRequest(url: url)
-        addBasicAuth(to: &request)
 
         let data: Data
         let response: URLResponse
@@ -113,16 +108,6 @@ class UptimeKumaStatusPageProvider {
 
     private func buildStatusPageURL(for slug: String) -> URL? {
         baseURL.appendingPathComponent(slug)
-    }
-
-    private func addBasicAuth(to request: inout URLRequest) {
-        if !username.isEmpty && !password.isEmpty {
-            let credentials = "\(username):\(password)"
-            if let credentialsData = credentials.data(using: .utf8) {
-                let base64Credentials = credentialsData.base64EncodedString()
-                request.setValue("Basic \(base64Credentials)", forHTTPHeaderField: "Authorization")
-            }
-        }
     }
 }
 
