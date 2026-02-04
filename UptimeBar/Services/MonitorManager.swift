@@ -81,7 +81,14 @@ class MonitorManager {
 
     private func buildStatusPageSections(from monitors: [Monitor]) async -> [StatusPageSection] {
         let slugs = settings.statusPageSlugs
-        let statusPageProvider = UptimeKumaStatusPageProvider(settings: settings)
+        guard let statusPageBaseURL = settings.statusPageBaseURL else {
+            return []
+        }
+        let statusPageProvider = UptimeKumaStatusPageProvider(
+            baseURL: statusPageBaseURL,
+            username: settings.uptimeKumaUsername,
+            password: settings.uptimeKumaPassword
+        )
         let summaries = await statusPageProvider.fetchStatusPages(slugs: slugs)
         let summaryBySlug = Dictionary(uniqueKeysWithValues: summaries.map { ($0.slug.lowercased(), $0) })
 
