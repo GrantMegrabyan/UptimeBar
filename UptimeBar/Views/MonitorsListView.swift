@@ -16,6 +16,7 @@ struct MonitorsListView: View {
     @State private var isHealthySectionExpanded = true
     @State private var isSettingsPresented = false
     @State private var statusPageSectionExpanded: [String: Bool] = [:]
+    @State private var statusFilter: StatusFilter = .all
     @FocusState private var isFocused: Bool
 
     var body: some View {
@@ -63,7 +64,11 @@ struct MonitorsListView: View {
     private var mainContentView: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header with status summary
-            HeaderView(monitorManager: monitorManager, openSettingsWindow: openSettingsWindow)
+            HeaderView(
+                monitorManager: monitorManager,
+                statusFilter: $statusFilter,
+                openSettingsWindow: openSettingsWindow
+            )
                 .padding(.horizontal, 14)
                 .padding(.top, 12)
                 .padding(.bottom, 8)
@@ -121,24 +126,30 @@ struct MonitorsListView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         if settings.statusPageGroupingEnabled {
                             ForEach(statusPageSections) { section in
+                                let filteredSection = filteredStatusPageSection(section)
+                                if filteredSection.monitors.isEmpty && filteredSection.groups.isEmpty {
+                                    EmptyView()
+                                } else {
                                 let isExpanded = Binding(
-                                    get: { statusPageSectionExpanded[section.id] ?? true },
-                                    set: { statusPageSectionExpanded[section.id] = $0 }
+                                    get: { statusPageSectionExpanded[filteredSection.id] ?? true },
+                                    set: { statusPageSectionExpanded[filteredSection.id] = $0 }
                                 )
                                 CollapsibleGroupHeader(
-                                    title: section.title,
-                                    count: section.groups.isEmpty ? section.monitors.count : section.groups.reduce(0) { $0 + $1.monitors.count },
+                                    title: filteredSection.title,
+                                    count: filteredSection.groups.isEmpty
+                                        ? filteredSection.monitors.count
+                                        : filteredSection.groups.reduce(0) { $0 + $1.monitors.count },
                                     isExpanded: isExpanded
                                 )
                                 if isExpanded.wrappedValue {
-                                    if section.groups.isEmpty {
-                                        ForEach(section.monitors, id: \.id) { monitor in
+                                    if filteredSection.groups.isEmpty {
+                                        ForEach(filteredSection.monitors, id: \.id) { monitor in
                                             MonitorRowView(monitor: monitor) {
                                                 isMenuPresented = false
                                             }
                                         }
                                     } else {
-                                        ForEach(section.groups) { group in
+                                        ForEach(filteredSection.groups) { group in
                                             StatusPageGroupHeader(title: group.title, count: group.monitors.count)
                                             ForEach(group.monitors, id: \.id) { monitor in
                                                 MonitorRowView(monitor: monitor) {
@@ -148,9 +159,10 @@ struct MonitorsListView: View {
                                         }
                                     }
                                 }
+                                }
                             }
                         } else {
-                            ForEach(sortedMonitors, id: \.id) { monitor in
+                            ForEach(filteredMonitors, id: \.id) { monitor in
                                 MonitorRowView(monitor: monitor) {
                                     isMenuPresented = false
                                 }
@@ -182,7 +194,7 @@ struct MonitorsListView: View {
     private var monitors: [Monitor] {
         monitorManager.monitors
     }
-    
+
     private var issueMonitors: [Monitor] {
         monitors.filter { $0.status != .up }.sorted { $0.id < $1.id }
     }
@@ -195,8 +207,67 @@ struct MonitorsListView: View {
         monitors.sorted { $0.id < $1.id }
     }
 
+    private var filteredMonitors: [Monitor] {
+        let filtered: [Monitor]
+        switch statusFilter {
+        case .all:
+            filtered = monitors
+        case .up:
+            filtered = monitors.filter { $0.status == .up }
+        case .down:
+            filtered = monitors.filter { $0.status == .down }
+        }
+        return filtered.sorted { $0.id < $1.id }
+    }
+
     private var statusPageSections: [StatusPageSection] {
         monitorManager.statusPageSections
+    }
+
+    private func filteredStatusPageSection(_ section: StatusPageSection) -> StatusPageSection {
+        switch statusFilter {
+        case .all:
+            return section
+        case .up, .down:
+            let filteredGroups = section.groups.compactMap { group -> StatusPageMonitorGroup? in
+                let filteredMonitors = group.monitors.filter { monitor in
+                    switch statusFilter {
+                    case .up:
+                        return monitor.status == .up
+                    case .down:
+                        return monitor.status == .down
+                    case .all:
+                        return true
+                    }
+                }
+                guard !filteredMonitors.isEmpty else { return nil }
+                return StatusPageMonitorGroup(
+                    id: group.id,
+                    title: group.title,
+                    weight: group.weight,
+                    monitors: filteredMonitors
+                )
+            }
+
+            let filteredMonitors = section.monitors.filter { monitor in
+                switch statusFilter {
+                case .up:
+                    return monitor.status == .up
+                case .down:
+                    return monitor.status == .down
+                case .all:
+                    return true
+                }
+            }
+
+            return StatusPageSection(
+                id: section.id,
+                title: section.title,
+                groups: filteredGroups,
+                monitors: filteredMonitors,
+                isDefault: section.isDefault
+            )
+        }
     }
 }
 
@@ -246,6 +317,12 @@ struct StatusPageGroupHeader: View {
         .padding(.top, 4)
         .padding(.bottom, 2)
     }
+}
+
+enum StatusFilter: String, CaseIterable {
+    case all
+    case up
+    case down
 }
 
 #Preview("All Green") {

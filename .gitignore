@@ -44,4 +44,7 @@ DerivedData/
 *~.nib
 *.swp
 
+# AI
 ralph_loop.py
+.codex/
+.claude/

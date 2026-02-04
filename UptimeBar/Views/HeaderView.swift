@@ -9,7 +9,10 @@ import SwiftUI
 
 struct HeaderView: View {
     @Bindable var monitorManager: MonitorManager
+    @Binding var statusFilter: StatusFilter
     let openSettingsWindow: () -> Void
+    @State private var isUpHovered = false
+    @State private var isDownHovered = false
     
     var body: some View {
         HStack(spacing: 6) {
@@ -20,23 +23,81 @@ struct HeaderView: View {
             if upCount > 0 {
                 Text("•")
                     .foregroundStyle(.secondary)
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 9))
-                    .foregroundStyle(.green)
-                Text("\(upCount)")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+                Button {
+                    toggleFilter(.up)
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 9))
+                            .foregroundStyle(.green)
+                        Text("\(upCount)")
+                            .font(.system(size: 11))
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(
+                        Capsule()
+                            .fill(
+                                (statusFilter == .up || isUpHovered)
+                                    ? Color.accentColor.opacity(0.15)
+                                    : Color.clear
+                            )
+                    )
+                    .overlay(
+                        Capsule()
+                            .stroke(
+                                (statusFilter == .up || isUpHovered)
+                                    ? Color.accentColor.opacity(0.6)
+                                    : Color.secondary.opacity(0.35),
+                                lineWidth: 0.5
+                            )
+                    )
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(statusFilter == .up ? Color.accentColor : .secondary)
+                .contentShape(Capsule())
+                .onHover { isUpHovered = $0 }
+                .help("Show only up monitors")
             }
             
             if downCount > 0 {
                 Text("•")
                     .foregroundStyle(.secondary)
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 9))
-                    .foregroundStyle(.red)
-                Text("\(downCount)")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+                Button {
+                    toggleFilter(.down)
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 9))
+                            .foregroundStyle(.red)
+                        Text("\(downCount)")
+                            .font(.system(size: 11))
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(
+                        Capsule()
+                            .fill(
+                                (statusFilter == .down || isDownHovered)
+                                    ? Color.accentColor.opacity(0.15)
+                                    : Color.clear
+                            )
+                    )
+                    .overlay(
+                        Capsule()
+                            .stroke(
+                                (statusFilter == .down || isDownHovered)
+                                    ? Color.accentColor.opacity(0.6)
+                                    : Color.secondary.opacity(0.35),
+                                lineWidth: 0.5
+                            )
+                    )
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(statusFilter == .down ? Color.accentColor : .secondary)
+                .contentShape(Capsule())
+                .onHover { isDownHovered = $0 }
+                .help("Show only down monitors")
             }
             
             Spacer()
@@ -64,12 +125,21 @@ struct HeaderView: View {
     private var downCount: Int {
         monitors.filter { $0.status == .down }.count
     }
+
+    private func toggleFilter(_ filter: StatusFilter) {
+        if statusFilter == filter {
+            statusFilter = .all
+        } else {
+            statusFilter = filter
+        }
+    }
 }
 
 #Preview {
     @Previewable @State var manager = MonitorManager.preview(with: MonitorManager.sampleMixedStatusMonitors)
+    @Previewable @State var filter: StatusFilter = .all
     
-    HeaderView(monitorManager: manager, openSettingsWindow: {})
+    HeaderView(monitorManager: manager, statusFilter: $filter, openSettingsWindow: {})
         .frame(width: 300)
         .padding()
 }
