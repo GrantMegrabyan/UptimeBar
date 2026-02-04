@@ -11,97 +11,43 @@ struct HeaderView: View {
     @Bindable var monitorManager: MonitorManager
     @Binding var statusFilter: StatusFilter
     let openSettingsWindow: () -> Void
-    @State private var isUpHovered = false
-    @State private var isDownHovered = false
-    
+
     var body: some View {
         HStack(spacing: 6) {
             Text("\(monitors.count) monitors")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
-            
+
             if upCount > 0 {
                 Text("•")
                     .foregroundStyle(.secondary)
-                Button {
+                FilterChip(
+                    icon: "checkmark.circle.fill",
+                    iconColor: .green,
+                    count: upCount,
+                    isSelected: statusFilter == .up,
+                    helpText: "Show only up monitors"
+                ) {
                     toggleFilter(.up)
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 9))
-                            .foregroundStyle(.green)
-                        Text("\(upCount)")
-                            .font(.system(size: 11))
-                    }
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(
-                        Capsule()
-                            .fill(
-                                (statusFilter == .up || isUpHovered)
-                                    ? Color.accentColor.opacity(0.15)
-                                    : Color.clear
-                            )
-                    )
-                    .overlay(
-                        Capsule()
-                            .stroke(
-                                (statusFilter == .up || isUpHovered)
-                                    ? Color.accentColor.opacity(0.6)
-                                    : Color.secondary.opacity(0.35),
-                                lineWidth: 0.5
-                            )
-                    )
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(statusFilter == .up ? Color.accentColor : .secondary)
-                .contentShape(Capsule())
-                .onHover { isUpHovered = $0 }
-                .help("Show only up monitors")
             }
-            
+
             if downCount > 0 {
                 Text("•")
                     .foregroundStyle(.secondary)
-                Button {
+                FilterChip(
+                    icon: "xmark.circle.fill",
+                    iconColor: .red,
+                    count: downCount,
+                    isSelected: statusFilter == .down,
+                    helpText: "Show only down monitors"
+                ) {
                     toggleFilter(.down)
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 9))
-                            .foregroundStyle(.red)
-                        Text("\(downCount)")
-                            .font(.system(size: 11))
-                    }
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(
-                        Capsule()
-                            .fill(
-                                (statusFilter == .down || isDownHovered)
-                                    ? Color.accentColor.opacity(0.15)
-                                    : Color.clear
-                            )
-                    )
-                    .overlay(
-                        Capsule()
-                            .stroke(
-                                (statusFilter == .down || isDownHovered)
-                                    ? Color.accentColor.opacity(0.6)
-                                    : Color.secondary.opacity(0.35),
-                                lineWidth: 0.5
-                            )
-                    )
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(statusFilter == .down ? Color.accentColor : .secondary)
-                .contentShape(Capsule())
-                .onHover { isDownHovered = $0 }
-                .help("Show only down monitors")
             }
-            
+
             Spacer()
-            
+
             // Settings button
             Button("Settings", systemImage: "gearshape") {
                 openSettingsWindow()
@@ -113,15 +59,15 @@ struct HeaderView: View {
             .help("Settings")
         }
     }
-    
+
     private var monitors: [Monitor] {
         monitorManager.monitors
     }
-    
+
     private var upCount: Int {
         monitors.filter { $0.status == .up }.count
     }
-    
+
     private var downCount: Int {
         monitors.filter { $0.status == .down }.count
     }
@@ -132,6 +78,52 @@ struct HeaderView: View {
         } else {
             statusFilter = filter
         }
+    }
+}
+
+/// A reusable filter chip button with icon, count, and hover/selection states
+struct FilterChip: View {
+    let icon: String
+    let iconColor: Color
+    let count: Int
+    let isSelected: Bool
+    let helpText: String
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    private var isHighlighted: Bool {
+        isSelected || isHovered
+    }
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 9))
+                    .foregroundStyle(iconColor)
+                Text("\(count)")
+                    .font(.system(size: 11))
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(
+                Capsule()
+                    .fill(isHighlighted ? Color.accentColor.opacity(0.15) : Color.clear)
+            )
+            .overlay(
+                Capsule()
+                    .stroke(
+                        isHighlighted ? Color.accentColor.opacity(0.6) : Color.secondary.opacity(0.35),
+                        lineWidth: 0.5
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+        .contentShape(Capsule())
+        .onHover { isHovered = $0 }
+        .help(helpText)
     }
 }
 
