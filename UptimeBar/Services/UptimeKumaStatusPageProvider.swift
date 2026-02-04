@@ -66,7 +66,7 @@ class UptimeKumaStatusPageProvider {
             throw MonitorFetchError.invalidURL
         }
 
-        var request = URLRequest(url: url)
+        let request = URLRequest(url: url)
 
         let data: Data
         let response: URLResponse
