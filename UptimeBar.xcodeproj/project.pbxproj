@@ -45,11 +45,6 @@
 			path = UptimeBarTests;
 			sourceTree = "<group>";
 		};
-		93E889372F26EC05003A167D /* UptimeBarUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = UptimeBarUITests;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,7 +79,6 @@
 			children = (
 				93E8891F2F26EC04003A167D /* UptimeBar */,
 				93E8892D2F26EC05003A167D /* UptimeBarTests */,
-				93E889372F26EC05003A167D /* UptimeBarUITests */,
 				93E8891E2F26EC04003A167D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -161,9 +155,6 @@
 			);
 			dependencies = (
 				93E889362F26EC05003A167D /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				93E889372F26EC05003A167D /* UptimeBarUITests */,
 			);
 			name = UptimeBarUITests;
 			packageProductDependencies = (
