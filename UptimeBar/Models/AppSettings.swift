@@ -8,10 +8,26 @@
 import Foundation
 import SwiftUI
 
+enum AuthenticationType: String, CaseIterable {
+    case apiKey = "apiKey"
+    case basicAuth = "basicAuth"
+    case none = "none"
+
+    var displayName: String {
+        switch self {
+        case .apiKey: return "API Key"
+        case .basicAuth: return "Username & Password"
+        case .none: return "None"
+        }
+    }
+}
+
 @MainActor
 @Observable
 class AppSettings {
     var uptimeKumaBaseURL: String
+    var authenticationType: AuthenticationType
+    var uptimeKumaAPIKey: String
     var uptimeKumaUsername: String
     var uptimeKumaPassword: String
     var refreshInterval: Int
@@ -26,6 +42,23 @@ class AppSettings {
             let legacyMetricsURL = UserDefaults.standard.string(forKey: "uptimeKumaURL") ?? ""
             self.uptimeKumaBaseURL = Self.normalizeBaseURLString(legacyMetricsURL)
         }
+
+        // Authentication type defaults to .apiKey for new users, preserves existing for migrations
+        if let storedAuthType = UserDefaults.standard.string(forKey: "authenticationType"),
+           let authType = AuthenticationType(rawValue: storedAuthType) {
+            self.authenticationType = authType
+        } else {
+            // Check if user has existing username/password credentials (migration case)
+            let hasExistingUsername = !(UserDefaults.standard.string(forKey: "uptimeKumaUsername") ?? "").isEmpty
+            let hasExistingPassword = !KeychainStore.getUptimeKumaPassword().isEmpty
+            if hasExistingUsername || hasExistingPassword {
+                self.authenticationType = .basicAuth
+            } else {
+                self.authenticationType = .apiKey
+            }
+        }
+
+        self.uptimeKumaAPIKey = KeychainStore.getUptimeKumaAPIKey()
         self.uptimeKumaUsername = UserDefaults.standard.string(forKey: "uptimeKumaUsername") ?? ""
         // Password is stored in Keychain.
         self.uptimeKumaPassword = KeychainStore.getUptimeKumaPassword()
@@ -153,6 +186,8 @@ class AppSettings {
         if let metricsURLString {
             UserDefaults.standard.set(metricsURLString, forKey: "uptimeKumaURL")
         }
+        UserDefaults.standard.set(authenticationType.rawValue, forKey: "authenticationType")
+        KeychainStore.setUptimeKumaAPIKey(uptimeKumaAPIKey)
         UserDefaults.standard.set(uptimeKumaUsername, forKey: "uptimeKumaUsername")
         KeychainStore.setUptimeKumaPassword(uptimeKumaPassword)
         UserDefaults.standard.set(refreshInterval, forKey: "refreshInterval")
@@ -167,6 +202,8 @@ extension AppSettings {
     /// Preview-only factory method with mock data that doesn't persist to UserDefaults
     static func preview(
         url: String = "http://192.168.1.1:3001",
+        authenticationType: AuthenticationType = .basicAuth,
+        apiKey: String = "",
         username: String = "preview-user",
         password: String = "preview-pass",
         refreshInterval: Int = 5,
@@ -177,6 +214,8 @@ extension AppSettings {
         let settings = AppSettings()
         // Override with preview-specific values
         settings.uptimeKumaBaseURL = url
+        settings.authenticationType = authenticationType
+        settings.uptimeKumaAPIKey = apiKey
         settings.uptimeKumaUsername = username
         settings.uptimeKumaPassword = password
         settings.refreshInterval = refreshInterval
@@ -190,6 +229,8 @@ extension AppSettings {
         let settings = AppSettings()
         // Override with preview-specific values
         settings.uptimeKumaBaseURL = ""
+        settings.authenticationType = .apiKey
+        settings.uptimeKumaAPIKey = ""
         settings.uptimeKumaUsername = ""
         settings.uptimeKumaPassword = ""
         settings.refreshInterval = 0

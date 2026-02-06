@@ -13,6 +13,7 @@ enum KeychainStore {
     private static let keychain = Keychain(service: service)
 
     private static let uptimeKumaPasswordKey = "uptimeKumaPassword"
+    private static let uptimeKumaAPIKeyKey = "uptimeKumaAPIKey"
 
     static func getUptimeKumaPassword() -> String {
         keychain[uptimeKumaPasswordKey] ?? ""
@@ -23,6 +24,18 @@ enum KeychainStore {
             keychain[uptimeKumaPasswordKey] = nil
         } else {
             keychain[uptimeKumaPasswordKey] = value
+        }
+    }
+
+    static func getUptimeKumaAPIKey() -> String {
+        keychain[uptimeKumaAPIKeyKey] ?? ""
+    }
+
+    static func setUptimeKumaAPIKey(_ value: String) {
+        if value.isEmpty {
+            keychain[uptimeKumaAPIKeyKey] = nil
+        } else {
+            keychain[uptimeKumaAPIKeyKey] = value
         }
     }
 }

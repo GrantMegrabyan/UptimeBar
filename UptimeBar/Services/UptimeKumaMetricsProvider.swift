@@ -28,17 +28,28 @@ class UptimeKumaMetricsProvider: MetricsProvider {
         }
 
         var request = URLRequest(url: url)
+        addAuthorizationHeader(to: &request, settings: settings)
 
-        // Add HTTP Basic Authentication
-        if !settings.uptimeKumaUsername.isEmpty && !settings.uptimeKumaPassword.isEmpty {
+        return try await fetchWithRetry(request: request)
+    }
+
+    private func addAuthorizationHeader(to request: inout URLRequest, settings: AppSettings) {
+        switch settings.authenticationType {
+        case .none:
+            break
+        case .apiKey:
+            let credentials = ":\(settings.uptimeKumaAPIKey)"
+            if let credentialsData = credentials.data(using: .utf8) {
+                let base64Credentials = credentialsData.base64EncodedString()
+                request.setValue("Basic \(base64Credentials)", forHTTPHeaderField: "Authorization")
+            }
+        case .basicAuth:
             let credentials = "\(settings.uptimeKumaUsername):\(settings.uptimeKumaPassword)"
             if let credentialsData = credentials.data(using: .utf8) {
                 let base64Credentials = credentialsData.base64EncodedString()
                 request.setValue("Basic \(base64Credentials)", forHTTPHeaderField: "Authorization")
             }
         }
-
-        return try await fetchWithRetry(request: request)
     }
 
     private func fetchWithRetry(request: URLRequest) async throws -> [Monitor] {

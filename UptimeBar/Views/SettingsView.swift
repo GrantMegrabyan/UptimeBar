@@ -65,28 +65,63 @@ struct SettingsView: View {
                                         .foregroundStyle(.red)
                                 }
                             }
-                            
-                            // Username and Password (side-by-side)
-                            HStack(spacing: 12) {
+
+                            // Authentication Type Picker
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Authentication")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(.secondary)
+
+                                Picker("Authentication", selection: $settings.authenticationType) {
+                                    ForEach(AuthenticationType.allCases, id: \.self) { authType in
+                                        Text(authType.displayName).tag(authType)
+                                    }
+                                }
+                                .pickerStyle(.menu)
+                                .labelsHidden()
+                                .onChange(of: settings.authenticationType) {
+                                    testResult = nil
+                                }
+                            }
+
+                            // Conditional credential fields based on auth type
+                            switch settings.authenticationType {
+                            case .apiKey:
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text("Username")
+                                    Text("API Key")
                                         .font(.system(size: 12, weight: .medium))
                                         .foregroundStyle(.secondary)
-                                    
-                                    TextField("Username", text: $settings.uptimeKumaUsername)
+
+                                    SecureField("API Key", text: $settings.uptimeKumaAPIKey)
                                         .textFieldStyle(.roundedBorder)
-                                        .font(.system(size: 12))
+                                        .font(.system(size: 12, design: .monospaced))
                                 }
 
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Password")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundStyle(.secondary)
+                            case .basicAuth:
+                                HStack(spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Username")
+                                            .font(.system(size: 12, weight: .medium))
+                                            .foregroundStyle(.secondary)
 
-                                    SecureField("Password", text: $settings.uptimeKumaPassword)
-                                        .textFieldStyle(.roundedBorder)
-                                        .font(.system(size: 12))
+                                        TextField("Username", text: $settings.uptimeKumaUsername)
+                                            .textFieldStyle(.roundedBorder)
+                                            .font(.system(size: 12))
+                                    }
+
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Password")
+                                            .font(.system(size: 12, weight: .medium))
+                                            .foregroundStyle(.secondary)
+
+                                        SecureField("Password", text: $settings.uptimeKumaPassword)
+                                            .textFieldStyle(.roundedBorder)
+                                            .font(.system(size: 12))
+                                    }
                                 }
+
+                            case .none:
+                                EmptyView()
                             }
 
                             // Test Connection
